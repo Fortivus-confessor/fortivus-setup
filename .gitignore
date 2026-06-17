@@ -8,3 +8,5 @@ src/infra/local/prometheus/data/
 # Logs
 logs/
 *.log
+
+**/.env
