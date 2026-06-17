@@ -1,0 +1,63 @@
+name: CD - Deploy to Server
+
+on:
+  push:
+    branches:
+      - main
+      - hom
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Check Secrets Presence
+        run: |
+          echo "--- Diagnostic Check ---"
+          if [ -z "${{ secrets.SERVER_HOST_DEV }}" ]; then echo "❌ SERVER_HOST_DEV is MISSING"; else echo "✅ SERVER_HOST_DEV is present"; fi
+          if [ -z "${{ secrets.SSH_PRIVATE_KEY }}" ]; then echo "❌ SSH_PRIVATE_KEY is MISSING"; else echo "✅ SSH_PRIVATE_KEY is present"; fi
+
+      - name: Copy Files to Server via SCP
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host: ${{ github.ref == 'refs/heads/main' && secrets.SERVER_HOST_DEV || secrets.SERVER_HOST_HOM }}
+          username: ${{ secrets.SERVER_USER }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          port: 22
+          source: "."
+          target: "/opt/fortivus-setup"
+          strip_components: 0
+
+      - name: Execute Docker Compose via SSH
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ github.ref == 'refs/heads/main' && secrets.SERVER_HOST_DEV || secrets.SERVER_HOST_HOM }}
+          username: ${{ secrets.SERVER_USER }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          port: 22
+          script: |
+            cd /opt/fortivus-setup/src/infra
+            
+            # Criar arquivo .env SEM espaços e protegido contra caracteres especiais
+            printf "DB_PASSWORD=%s\nDB_USER=%s\nDOMAIN=%s\nACME_EMAIL=%s\nVAULT_ROLE_ID=%s\nVAULT_SECRET_ID=%s\nAUTHENTIK_SECRET_KEY=%s\n" \
+              "${{ secrets.DB_PASSWORD }}" "${{ secrets.DB_USER }}" "${{ secrets.DOMAIN }}" \
+              "${{ secrets.ACME_EMAIL }}" "${{ secrets.VAULT_ROLE_ID }}" "${{ secrets.VAULT_SECRET_ID }}" "${{ secrets.AUTHENTIK_SECRET_KEY }}" > .env
+            
+            # Determinar arquivo compose
+            if [ "${{ github.ref }}" = "refs/heads/main" ]; then
+              COMPOSE_FILE="docker-compose-dev.yml"
+            else
+              COMPOSE_FILE="docker-compose-hom.yml"
+            fi
+            
+            # Puxar imagens novas (importante para garantir a v3.6.1 do Traefik)
+            docker compose -f $COMPOSE_FILE pull
+            
+            # Limpeza de containers (sem apagar pastas de dados locais por padrão)
+            docker compose -f $COMPOSE_FILE down
+            docker compose -f $COMPOSE_FILE up -d --remove-orphans
+            
+            # Limpeza de imagens antigas
+            docker image prune -f

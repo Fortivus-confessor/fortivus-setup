@@ -1,0 +1,6 @@
+{
+  "name": "stata-core",
+  "version": "1.0.0",
+  "description": "Núcleo de gestão de incêndios florestais do projeto STATA",
+  "type": "spring-boot"
+}

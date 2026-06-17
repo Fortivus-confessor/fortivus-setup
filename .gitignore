@@ -1,0 +1,4 @@
+src/infra/geoserver-local/data/
+src/infra/postgres-local/data/
+src/infra/argos-processamento/*
+!src/infra/argos-processamento/.gitkeep

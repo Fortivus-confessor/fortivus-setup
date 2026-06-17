@@ -1,0 +1,240 @@
+services:
+  # 1. Banco de Dados Central (PostgreSQL + PostGIS)
+  postgres:
+    image: postgis/postgis:16-3.5
+    container_name: fortivus-postgres-local
+    restart: always
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
+    ports:
+      - "${POSTGRES_PORT}:5432"
+    volumes:
+      - ./postgres/data:/var/lib/postgresql/data
+      - ./postgres/init-db.sql:/docker-entrypoint-initdb.d/init-db.sql
+    networks:
+      - fortivus-network-local
+
+  # 2. Cache e Broker (Redis)
+  redis:
+    image: redis:alpine
+    container_name: fortivus-redis-local
+    restart: always
+    ports:
+      - "${REDIS_PORT}:6379"
+    networks:
+      - fortivus-network-local
+
+  # 3. Gestão de Identidade (Keycloak)
+  keycloak:
+    image: quay.io/keycloak/keycloak:24.0.4
+    container_name: fortivus-auth-local
+    restart: always
+    environment:
+      KC_DB: postgres
+      KC_DB_URL: jdbc:postgresql://postgres:5432/${KEYCLOAK_POSTGRES_DB:-keycloak}
+      KC_DB_USERNAME: ${POSTGRES_USER}
+      KC_DB_PASSWORD: ${POSTGRES_PASSWORD}
+      KEYCLOAK_ADMIN: admin
+      KEYCLOAK_ADMIN_PASSWORD: admin
+    command: start-dev --import-realm
+    volumes:
+      - ./keycloak/realm-export.json:/opt/keycloak/data/import/realm-export.json
+    ports:
+      - "9000:8080"
+    depends_on:
+      - postgres
+    networks:
+      - fortivus-network-local
+
+  # 4. Object Storage (SeaweedFS)
+  seaweedfs:
+    image: chrislusf/seaweedfs:latest
+    container_name: fortivus-storage-local
+    restart: always
+    ports:
+      - "${SEAWEEDFS_MASTER_PORT}:9333"
+      - "${SEAWEEDFS_S3_PORT}:8333"
+      - "8083:8083"
+    command: 'server -s3'
+    volumes:
+      - ./seaweedfs/data:/data
+    networks:
+      - fortivus-network-local
+
+  # 5. GIS Tile Server (Martin)
+  martin:
+    image: maplibre/martin:latest
+    container_name: fortivus-gis-local
+    restart: always
+    ports:
+      - "3001:3000"
+    environment:
+      - DATABASE_URL=postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB}
+    depends_on:
+      - postgres
+    networks:
+      - fortivus-network-local
+
+  # 5.5 RabbitMQ (Mensageria)
+  rabbitmq:
+    image: rabbitmq:3-management-alpine
+    container_name: fortivus-rabbitmq-local
+    restart: always
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    environment:
+      - RABBITMQ_DEFAULT_USER=guest
+      - RABBITMQ_DEFAULT_PASS=guest
+    networks:
+      - fortivus-network-local
+
+  # 6. Observabilidade - Loki (Banco de Logs)
+  loki:
+    image: grafana/loki:latest
+    container_name: fortivus-loki-local
+    ports:
+      - "3100:3100"
+    command: -config.file=/etc/loki/local-config.yaml
+    volumes:
+      - ./observability/loki-config.yml:/etc/loki/local-config.yaml
+    networks:
+      - fortivus-network-local
+
+  # 7. Observabilidade - Promtail (Coletor de Logs)
+  promtail:
+    image: grafana/promtail:latest
+    container_name: fortivus-promtail-local
+    volumes:
+      - /var/lib/docker/containers:/var/lib/docker/containers:ro
+      - ../../../../logs:/opt/app/logs:ro # Mapeia os logs do Spring Boot
+      - ./observability/promtail-config.yml:/etc/promtail/config.yml
+    command: -config.file=/etc/promtail/config.yml
+    networks:
+      - fortivus-network-local
+
+  # 8. Observabilidade - Grafana (Painel Visual)
+  grafana:
+    image: grafana/grafana:latest
+    container_name: fortivus-grafana-local
+    ports:
+      - "3000:3000"
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD=${GRAFANA_ADMIN_PASSWORD}
+    networks:
+      - fortivus-network-local
+
+  # 9. Traefik (Edge Router / Proxy Reverso)
+  traefik:
+    image: traefik:latest
+    container_name: fortivus-traefik-local
+    command:
+      - "--api.insecure=true"
+      - "--providers.docker=true"
+      - "--providers.docker.exposedbydefault=false"
+      - "--entrypoints.web.address=:80"
+    ports:
+      - "8000:80" # Alterado para 8000 pois a porta 80 está em uso no Windows
+      - "8080:8080" # Dashboard do Traefik
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock # Removido :ro para testar permissão no Windows
+    networks:
+      - fortivus-network-local
+
+  # 10. Frontend (Fire Command Center)
+  frontend:
+    build:
+      context: ../../../../fire-command-center
+      dockerfile: Dockerfile
+    container_name: fortivus-frontend-local
+    restart: always
+    volumes:
+      - ../../../../fire-command-center:/app
+      - /app/node_modules # Mantém os modulos compilados pelo container
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.frontend.rule=PathPrefix(`/`)"
+      - "traefik.http.services.frontend.loadbalancer.server.port=8080"
+    networks:
+      - fortivus-network-local
+
+  # 11. Backend (Fortivus V2)
+  backend:
+    build:
+      context: ../../../../fortivus-v2
+      dockerfile: Dockerfile
+    container_name: fortivus-backend-local
+    restart: always
+    environment:
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres:5432/${POSTGRES_DB}
+      - SPRING_DATASOURCE_USERNAME=${POSTGRES_USER}
+      - SPRING_DATASOURCE_PASSWORD=${POSTGRES_PASSWORD}
+      - SPRING_REDIS_HOST=redis
+      - SPRING_REDIS_PORT=${REDIS_PORT}
+      - SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_ISSUER_URI=http://localhost:9000/realms/fortivus
+      - SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_JWK_SET_URI=http://keycloak:8080/realms/fortivus/protocol/openid-connect/certs
+    extra_hosts:
+      - "localhost:host-gateway"
+    depends_on:
+      - postgres
+      - redis
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.backend.rule=PathPrefix(`/combate`)"
+      - "traefik.http.services.backend.loadbalancer.server.port=8080"
+    networks:
+      - fortivus-network-local
+
+  # 12. Attachment Service (Upload de Imagens)
+  attachment:
+    build:
+      context: ../../../../attachment-service
+      dockerfile: Dockerfile
+    container_name: fortivus-attachment-local
+    restart: always
+    environment:
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres:5432/${POSTGRES_DB}
+      - SPRING_DATASOURCE_USERNAME=${POSTGRES_USER}
+      - SPRING_DATASOURCE_PASSWORD=${POSTGRES_PASSWORD}
+      - SPRING_RABBITMQ_HOST=rabbitmq
+      - SEAWEEDFS_S3_ENDPOINT=http://seaweedfs:8333
+    extra_hosts:
+      - "localhost:host-gateway"
+    depends_on:
+      - postgres
+      - rabbitmq
+      - seaweedfs
+    labels:
+      - "traefik.enable=true"
+    networks:
+      - fortivus-network-local
+
+  # 13. Fire Event Service (Focos de Calor)
+  fire-event-service:
+    build:
+      context: ../../../../fire-event-service
+      dockerfile: Dockerfile
+    container_name: fortivus-fire-event-local
+    restart: always
+    environment:
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres:5432/${POSTGRES_DB}
+      - SPRING_DATASOURCE_USERNAME=${POSTGRES_USER}
+      - SPRING_DATASOURCE_PASSWORD=${POSTGRES_PASSWORD}
+      - SPRING_RABBITMQ_HOST=rabbitmq
+    extra_hosts:
+      - "localhost:host-gateway"
+    depends_on:
+      - postgres
+      - rabbitmq
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.fireevents.rule=PathPrefix(`/api/v1/fire-events`)"
+      - "traefik.http.services.fireevents.loadbalancer.server.port=8084"
+    networks:
+      - fortivus-network-local
+
+networks:
+  fortivus-network-local:
+    driver: bridge
