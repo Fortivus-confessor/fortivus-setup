@@ -1,4 +1,10 @@
-src/infra/geoserver-local/data/
-src/infra/postgres-local/data/
-src/infra/argos-processamento/*
-!src/infra/argos-processamento/.gitkeep
+﻿# Local data folders
+src/infra/local/seaweedfs/data/
+src/infra/local/postgres/data/
+src/infra/local/rabbitmq/data/
+src/infra/local/grafana/data/
+src/infra/local/prometheus/data/
+
+# Logs
+logs/
+*.log

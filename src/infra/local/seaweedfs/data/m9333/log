@@ -1,161 +1,0 @@
-      56
-	raft:join"G{"name":"172.19.0.6:9333.19333","connectionString":"172.19.0.6:19333"}
-      33
-MaxVolumeId""{"maxVolumeId":0,"topologyId":""}
-       c
-raft:nop      57
-MaxVolumeId"F{"maxVolumeId":0,"topologyId":"8c7dc4f7-f6e0-42d2-beb0-96d1de79b554"}
-      59
-MaxVolumeId"F{"maxVolumeId":0,"topologyId":"8c7dc4f7-f6e0-42d2-beb0-96d1de79b554"}
-       e
-raft:nop      59
-MaxVolumeId"F{"maxVolumeId":1,"topologyId":"8c7dc4f7-f6e0-42d2-beb0-96d1de79b554"}
-      59
-MaxVolumeId"F{"maxVolumeId":2,"topologyId":"8c7dc4f7-f6e0-42d2-beb0-96d1de79b554"}
-      59
-	MaxVolumeId"F{"maxVolumeId":3,"topologyId":"8c7dc4f7-f6e0-42d2-beb0-96d1de79b554"}
-      59
-
-MaxVolumeId"F{"maxVolumeId":4,"topologyId":"8c7dc4f7-f6e0-42d2-beb0-96d1de79b554"}
-      59
-MaxVolumeId"F{"maxVolumeId":5,"topologyId":"8c7dc4f7-f6e0-42d2-beb0-96d1de79b554"}
-      59
-MaxVolumeId"F{"maxVolumeId":6,"topologyId":"8c7dc4f7-f6e0-42d2-beb0-96d1de79b554"}
-      59
-MaxVolumeId"F{"maxVolumeId":7,"topologyId":"8c7dc4f7-f6e0-42d2-beb0-96d1de79b554"}
-      59
-MaxVolumeId"F{"maxVolumeId":8,"topologyId":"8c7dc4f7-f6e0-42d2-beb0-96d1de79b554"}
-      59
-MaxVolumeId"F{"maxVolumeId":9,"topologyId":"8c7dc4f7-f6e0-42d2-beb0-96d1de79b554"}
-      5a
-MaxVolumeId"G{"maxVolumeId":10,"topologyId":"8c7dc4f7-f6e0-42d2-beb0-96d1de79b554"}
-      5a
-MaxVolumeId"G{"maxVolumeId":11,"topologyId":"8c7dc4f7-f6e0-42d2-beb0-96d1de79b554"}
-      5a
-MaxVolumeId"G{"maxVolumeId":12,"topologyId":"8c7dc4f7-f6e0-42d2-beb0-96d1de79b554"}
-      5a
-MaxVolumeId"G{"maxVolumeId":13,"topologyId":"8c7dc4f7-f6e0-42d2-beb0-96d1de79b554"}
-      5a
-MaxVolumeId"G{"maxVolumeId":14,"topologyId":"8c7dc4f7-f6e0-42d2-beb0-96d1de79b554"}
-       e
-raft:nop      59
-MaxVolumeId"F{"maxVolumeId":0,"topologyId":"8c7dc4f7-f6e0-42d2-beb0-96d1de79b554"}
-       e
-raft:nop      59
-MaxVolumeId"F{"maxVolumeId":0,"topologyId":"8c7dc4f7-f6e0-42d2-beb0-96d1de79b554"}
-       e
-raft:nop      59
-MaxVolumeId"F{"maxVolumeId":0,"topologyId":"8c7dc4f7-f6e0-42d2-beb0-96d1de79b554"}
-       e
-raft:nop      59
-MaxVolumeId"F{"maxVolumeId":0,"topologyId":"8c7dc4f7-f6e0-42d2-beb0-96d1de79b554"}
-       e
-raft:nop      59
-MaxVolumeId"F{"maxVolumeId":0,"topologyId":"8c7dc4f7-f6e0-42d2-beb0-96d1de79b554"}
-       e
-raft:nop      59
- MaxVolumeId"F{"maxVolumeId":0,"topologyId":"8c7dc4f7-f6e0-42d2-beb0-96d1de79b554"}
-       e
-!raft:nop      59
-"MaxVolumeId"F{"maxVolumeId":0,"topologyId":"8c7dc4f7-f6e0-42d2-beb0-96d1de79b554"}
-       e
-#	raft:nop      59
-$	MaxVolumeId"F{"maxVolumeId":0,"topologyId":"8c7dc4f7-f6e0-42d2-beb0-96d1de79b554"}
-       e
-%
-raft:nop      59
-&
-MaxVolumeId"F{"maxVolumeId":0,"topologyId":"8c7dc4f7-f6e0-42d2-beb0-96d1de79b554"}
-       e
-'raft:nop      59
-(MaxVolumeId"F{"maxVolumeId":0,"topologyId":"8c7dc4f7-f6e0-42d2-beb0-96d1de79b554"}
-       e
-)raft:nop      59
-*MaxVolumeId"F{"maxVolumeId":0,"topologyId":"8c7dc4f7-f6e0-42d2-beb0-96d1de79b554"}
-       e
-+raft:nop      59
-,MaxVolumeId"F{"maxVolumeId":0,"topologyId":"8c7dc4f7-f6e0-42d2-beb0-96d1de79b554"}
-       e
--raft:nop      59
-.MaxVolumeId"F{"maxVolumeId":0,"topologyId":"8c7dc4f7-f6e0-42d2-beb0-96d1de79b554"}
-       e
-/raft:nop      59
-0MaxVolumeId"F{"maxVolumeId":0,"topologyId":"8c7dc4f7-f6e0-42d2-beb0-96d1de79b554"}
-       e
-1raft:nop      59
-2MaxVolumeId"F{"maxVolumeId":0,"topologyId":"8c7dc4f7-f6e0-42d2-beb0-96d1de79b554"}
-       e
-3raft:nop      59
-4MaxVolumeId"F{"maxVolumeId":0,"topologyId":"8c7dc4f7-f6e0-42d2-beb0-96d1de79b554"}
-       e
-5raft:nop      59
-6MaxVolumeId"F{"maxVolumeId":0,"topologyId":"8c7dc4f7-f6e0-42d2-beb0-96d1de79b554"}
-       e
-7raft:nop      59
-8MaxVolumeId"F{"maxVolumeId":0,"topologyId":"8c7dc4f7-f6e0-42d2-beb0-96d1de79b554"}
-       e
-9raft:nop      59
-:MaxVolumeId"F{"maxVolumeId":0,"topologyId":"8c7dc4f7-f6e0-42d2-beb0-96d1de79b554"}
-       e
-;raft:nop      59
-<MaxVolumeId"F{"maxVolumeId":0,"topologyId":"8c7dc4f7-f6e0-42d2-beb0-96d1de79b554"}
-       e
-=raft:nop      59
->MaxVolumeId"F{"maxVolumeId":0,"topologyId":"8c7dc4f7-f6e0-42d2-beb0-96d1de79b554"}
-       e
-?raft:nop      59
-@MaxVolumeId"F{"maxVolumeId":0,"topologyId":"8c7dc4f7-f6e0-42d2-beb0-96d1de79b554"}
-       e
-Araft:nop      59
-BMaxVolumeId"F{"maxVolumeId":0,"topologyId":"8c7dc4f7-f6e0-42d2-beb0-96d1de79b554"}
-       e
-Craft:nop      59
-DMaxVolumeId"F{"maxVolumeId":0,"topologyId":"8c7dc4f7-f6e0-42d2-beb0-96d1de79b554"}
-       e
-Eraft:nop      59
-FMaxVolumeId"F{"maxVolumeId":0,"topologyId":"8c7dc4f7-f6e0-42d2-beb0-96d1de79b554"}
-       e
-Graft:nop      59
-HMaxVolumeId"F{"maxVolumeId":0,"topologyId":"8c7dc4f7-f6e0-42d2-beb0-96d1de79b554"}
-      59
-IMaxVolumeId"F{"maxVolumeId":0,"topologyId":"8c7dc4f7-f6e0-42d2-beb0-96d1de79b554"}
-       e
-Jraft:nop       e
-Kraft:nop      59
-LMaxVolumeId"F{"maxVolumeId":0,"topologyId":"8c7dc4f7-f6e0-42d2-beb0-96d1de79b554"}
-       e
-Mraft:nop      59
-NMaxVolumeId"F{"maxVolumeId":0,"topologyId":"8c7dc4f7-f6e0-42d2-beb0-96d1de79b554"}
-       e
-Oraft:nop      59
-PMaxVolumeId"F{"maxVolumeId":0,"topologyId":"8c7dc4f7-f6e0-42d2-beb0-96d1de79b554"}
-       e
-Q raft:nop      59
-R MaxVolumeId"F{"maxVolumeId":0,"topologyId":"8c7dc4f7-f6e0-42d2-beb0-96d1de79b554"}
-       e
-S!raft:nop      59
-T!MaxVolumeId"F{"maxVolumeId":0,"topologyId":"8c7dc4f7-f6e0-42d2-beb0-96d1de79b554"}
-       e
-U"raft:nop      5a
-V"MaxVolumeId"G{"maxVolumeId":14,"topologyId":"8c7dc4f7-f6e0-42d2-beb0-96d1de79b554"}
-       e
-W#raft:nop      59
-X#MaxVolumeId"F{"maxVolumeId":0,"topologyId":"8c7dc4f7-f6e0-42d2-beb0-96d1de79b554"}
-       e
-Y$raft:nop      59
-Z$MaxVolumeId"F{"maxVolumeId":0,"topologyId":"8c7dc4f7-f6e0-42d2-beb0-96d1de79b554"}
-       e
-[%raft:nop      59
-\%MaxVolumeId"F{"maxVolumeId":0,"topologyId":"8c7dc4f7-f6e0-42d2-beb0-96d1de79b554"}
-       e
-]&raft:nop      59
-^&MaxVolumeId"F{"maxVolumeId":0,"topologyId":"8c7dc4f7-f6e0-42d2-beb0-96d1de79b554"}
-       e
-_'raft:nop      59
-`'MaxVolumeId"F{"maxVolumeId":0,"topologyId":"8c7dc4f7-f6e0-42d2-beb0-96d1de79b554"}
-       e
-a(raft:nop      59
-b(MaxVolumeId"F{"maxVolumeId":0,"topologyId":"8c7dc4f7-f6e0-42d2-beb0-96d1de79b554"}
-       e
-c)raft:nop      59
-d)MaxVolumeId"F{"maxVolumeId":0,"topologyId":"8c7dc4f7-f6e0-42d2-beb0-96d1de79b554"}
