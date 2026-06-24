@@ -1,6 +1,7 @@
 {
   "realm": "fortivus",
   "enabled": true,
+  "loginTheme": "fortivus",
   "clients": [
     {
       "clientId": "fortivus-web",
