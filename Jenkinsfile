@@ -1,9 +1,14 @@
 pipeline {
     agent any
 
+    parameters {
+        string(name: 'VPS_HOST', defaultValue: '', description: 'IP ou dominio publico da VPS (ex: 192.168.1.100)')
+    }
+
     environment {
-        COMPOSE_FILE = 'src/infra/dev/docker-compose.yml'
-        ENV_FILE     = 'src/infra/dev/.env'
+        COMPOSE_FILE   = 'src/infra/dev/docker-compose.yml'
+        ENV_FILE       = 'src/infra/dev/.env'
+        WORKSPACE_ROOT = '/var/jenkins_home/workspace'
     }
 
     stages {
@@ -11,6 +16,28 @@ pipeline {
         stage('Checkout') {
             steps {
                 checkout scm
+            }
+        }
+
+        stage('Clonar repositorios') {
+            steps {
+                sh '''
+                    clone_or_pull() {
+                        local repo=$1 dir=$2 branch=${3:-main}
+                        if [ -d "$dir/.git" ]; then
+                            git -C "$dir" fetch origin "$branch"
+                            git -C "$dir" checkout "$branch"
+                            git -C "$dir" pull origin "$branch"
+                        else
+                            git clone --depth 1 -b "$branch" "$repo" "$dir"
+                        fi
+                    }
+
+                    clone_or_pull https://github.com/Fortivus-confessor/fortivus-backend        ${WORKSPACE_ROOT}/fortivus-v2
+                    clone_or_pull https://github.com/Fortivus-confessor/attachment-service      ${WORKSPACE_ROOT}/attachment-service
+                    clone_or_pull https://github.com/Fortivus-confessor/fire-event-service      ${WORKSPACE_ROOT}/fire-event-service  feature/role-permissions
+                    clone_or_pull https://github.com/Fortivus-confessor/fire-command-center     ${WORKSPACE_ROOT}/fire-command-center
+                '''
             }
         }
 
@@ -45,28 +72,35 @@ pipeline {
                         ]],
                     ]
                 ) {
-                    sh '''
-                        cat > ${ENV_FILE} <<EOF
-POSTGRES_USER=${POSTGRES_USER}
-POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
-POSTGRES_DB=${POSTGRES_DB}
-KEYCLOAK_POSTGRES_DB=${KEYCLOAK_POSTGRES_DB}
-KEYCLOAK_ADMIN=${KEYCLOAK_ADMIN}
-KEYCLOAK_ADMIN_PASSWORD=${KEYCLOAK_ADMIN_PASSWORD}
-RABBITMQ_USERNAME=${RABBITMQ_USERNAME}
-RABBITMQ_PASSWORD=${RABBITMQ_PASSWORD}
-S3_ACCESS_KEY=${S3_ACCESS_KEY}
-S3_SECRET_KEY=${S3_SECRET_KEY}
-NASA_FIRMS_MAP_KEY=${NASA_FIRMS_MAP_KEY}
-EOF
-                    '''
+                    sh """
+                        python3 -c "
+import os
+entries = [
+    ('POSTGRES_USER',         os.environ['POSTGRES_USER']),
+    ('POSTGRES_PASSWORD',     os.environ['POSTGRES_PASSWORD']),
+    ('POSTGRES_DB',           os.environ['POSTGRES_DB']),
+    ('KEYCLOAK_POSTGRES_DB',  os.environ['KEYCLOAK_POSTGRES_DB']),
+    ('KEYCLOAK_ADMIN',        os.environ['KEYCLOAK_ADMIN']),
+    ('KEYCLOAK_ADMIN_PASSWORD', os.environ['KEYCLOAK_ADMIN_PASSWORD']),
+    ('RABBITMQ_USERNAME',     os.environ['RABBITMQ_USERNAME']),
+    ('RABBITMQ_PASSWORD',     os.environ['RABBITMQ_PASSWORD']),
+    ('S3_ACCESS_KEY',         os.environ['S3_ACCESS_KEY']),
+    ('S3_SECRET_KEY',         os.environ['S3_SECRET_KEY']),
+    ('NASA_FIRMS_MAP_KEY',    os.environ['NASA_FIRMS_MAP_KEY']),
+    ('VPS_HOST',              '${params.VPS_HOST}'),
+]
+with open('${ENV_FILE}', 'w') as f:
+    for k, v in entries:
+        f.write(f'{k}={v}\\n')
+print('Arquivo .env gerado com sucesso.')
+"
+                    """
                 }
             }
         }
 
         stage('Build e Deploy') {
             steps {
-                sh 'docker compose -f ${COMPOSE_FILE} --env-file ${ENV_FILE} pull --ignore-pull-failures || true'
                 sh 'docker compose -f ${COMPOSE_FILE} --env-file ${ENV_FILE} up -d --build'
             }
         }
