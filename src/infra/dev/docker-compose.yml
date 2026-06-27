@@ -1,0 +1,175 @@
+services:
+  # 1. Banco de Dados Central (PostgreSQL + PostGIS)
+  postgres:
+    image: postgis/postgis:16-3.5
+    container_name: fortivus-postgres-dev
+    restart: always
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - fortivus-network-dev
+
+  # 2. Cache e Broker (Redis)
+  redis:
+    image: redis:alpine
+    container_name: fortivus-redis-dev
+    restart: always
+    networks:
+      - fortivus-network-dev
+
+  # 3. Gestão de Identidade (Keycloak)
+  keycloak:
+    image: quay.io/keycloak/keycloak:24.0.4
+    container_name: fortivus-auth-dev
+    restart: always
+    environment:
+      KC_DB: postgres
+      KC_DB_URL: jdbc:postgresql://postgres:5432/${KEYCLOAK_POSTGRES_DB:-keycloak}
+      KC_DB_USERNAME: ${POSTGRES_USER}
+      KC_DB_PASSWORD: ${POSTGRES_PASSWORD}
+      KEYCLOAK_ADMIN: ${KEYCLOAK_ADMIN}
+      KEYCLOAK_ADMIN_PASSWORD: ${KEYCLOAK_ADMIN_PASSWORD}
+    command: start-dev
+    networks:
+      - fortivus-network-dev
+
+  # 4. Object Storage (SeaweedFS)
+  seaweedfs:
+    image: chrislusf/seaweedfs:latest
+    container_name: fortivus-storage-dev
+    restart: always
+    command: 'server -s3'
+    volumes:
+      - seaweedfs_data:/data
+    networks:
+      - fortivus-network-dev
+
+  # 5. RabbitMQ (Mensageria)
+  rabbitmq:
+    image: rabbitmq:3-management-alpine
+    container_name: fortivus-rabbitmq-dev
+    restart: always
+    environment:
+      RABBITMQ_DEFAULT_USER: ${RABBITMQ_USERNAME}
+      RABBITMQ_DEFAULT_PASS: ${RABBITMQ_PASSWORD}
+    networks:
+      - fortivus-network-dev
+
+  # 6. Traefik (Edge Router / Proxy Reverso)
+  traefik:
+    image: traefik:latest
+    container_name: fortivus-traefik-dev
+    restart: always
+    command:
+      - "--providers.docker=true"
+      - "--providers.docker.exposedbydefault=false"
+      - "--entrypoints.web.address=:80"
+      - "--entrypoints.websecure.address=:443"
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+    networks:
+      - fortivus-network-dev
+
+  # 7. Frontend (Fire Command Center)
+  frontend:
+    build:
+      context: ../../../../fire-command-center
+      dockerfile: Dockerfile
+    container_name: fortivus-frontend-dev
+    restart: always
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.frontend.rule=PathPrefix(`/`)"
+      - "traefik.http.services.frontend.loadbalancer.server.port=8080"
+    networks:
+      - fortivus-network-dev
+
+  # 8. Backend (Fortivus V2)
+  backend:
+    build:
+      context: ../../../../fortivus-v2
+      dockerfile: Dockerfile
+    container_name: fortivus-backend-dev
+    restart: always
+    environment:
+      - SPRING_PROFILES_ACTIVE=dev
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres:5432/${POSTGRES_DB}
+      - SPRING_DATASOURCE_USERNAME=${POSTGRES_USER}
+      - SPRING_DATASOURCE_PASSWORD=${POSTGRES_PASSWORD}
+      - SPRING_REDIS_HOST=redis
+      - SPRING_REDIS_PORT=6379
+      - SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_ISSUER_URI=http://keycloak:8080/realms/fortivus
+      - SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_JWK_SET_URI=http://keycloak:8080/realms/fortivus/protocol/openid-connect/certs
+    depends_on:
+      - postgres
+      - redis
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.backend.rule=PathPrefix(`/combate`)"
+      - "traefik.http.services.backend.loadbalancer.server.port=8080"
+    networks:
+      - fortivus-network-dev
+
+  # 9. Attachment Service (Upload de Imagens)
+  attachment:
+    build:
+      context: ../../../../attachment-service
+      dockerfile: Dockerfile
+    container_name: fortivus-attachment-dev
+    restart: always
+    environment:
+      - SPRING_PROFILES_ACTIVE=dev
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres:5432/${POSTGRES_DB}
+      - SPRING_DATASOURCE_USERNAME=${POSTGRES_USER}
+      - SPRING_DATASOURCE_PASSWORD=${POSTGRES_PASSWORD}
+      - SPRING_RABBITMQ_HOST=rabbitmq
+      - SEAWEEDFS_S3_ENDPOINT=http://seaweedfs:8333
+    depends_on:
+      - postgres
+      - rabbitmq
+      - seaweedfs
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.attachment.rule=PathPrefix(`/api/v1/attachments`)"
+      - "traefik.http.services.attachment.loadbalancer.server.port=8082"
+    networks:
+      - fortivus-network-dev
+
+  # 10. Fire Event Service (Focos de Calor)
+  fire-event-service:
+    build:
+      context: ../../../../fire-event-service
+      dockerfile: Dockerfile
+    container_name: fortivus-fire-event-dev
+    restart: always
+    environment:
+      - SPRING_PROFILES_ACTIVE=dev
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres:5432/${POSTGRES_DB}
+      - SPRING_DATASOURCE_USERNAME=${POSTGRES_USER}
+      - SPRING_DATASOURCE_PASSWORD=${POSTGRES_PASSWORD}
+      - SPRING_RABBITMQ_HOST=rabbitmq
+      - NASA_FIRMS_MAP_KEY=${NASA_FIRMS_MAP_KEY}
+    depends_on:
+      - postgres
+      - rabbitmq
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.fireevents.rule=PathPrefix(`/api/v1/fire-events`)"
+      - "traefik.http.services.fireevents.loadbalancer.server.port=8084"
+    networks:
+      - fortivus-network-dev
+
+networks:
+  fortivus-network-dev:
+    driver: bridge
+
+volumes:
+  postgres_data:
+  seaweedfs_data:
