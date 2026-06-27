@@ -23,25 +23,25 @@ pipeline {
                         engineVersion: 2
                     ],
                     vaultSecrets: [
-                        [path: 'secret/fortivus/database',   engineVersion: 2, secretValues: [
+                        [path: 'fortivus/database',   engineVersion: 2, secretValues: [
                             [envVar: 'POSTGRES_USER',         vaultKey: 'POSTGRES_USER'],
                             [envVar: 'POSTGRES_PASSWORD',     vaultKey: 'POSTGRES_PASSWORD'],
                             [envVar: 'POSTGRES_DB',           vaultKey: 'POSTGRES_DB'],
                             [envVar: 'KEYCLOAK_POSTGRES_DB',  vaultKey: 'keycloak_database'],
                         ]],
-                        [path: 'secret/fortivus/keycloak',   engineVersion: 2, secretValues: [
+                        [path: 'fortivus/keycloak',   engineVersion: 2, secretValues: [
                             [envVar: 'KEYCLOAK_ADMIN',          vaultKey: 'KEYCLOAK_ADMIN'],
                             [envVar: 'KEYCLOAK_ADMIN_PASSWORD', vaultKey: 'KEYCLOAK_ADMIN_PASSWORD'],
                         ]],
-                        [path: 'secret/fortivus/rabbitmq',   engineVersion: 2, secretValues: [
+                        [path: 'fortivus/rabbitmq',   engineVersion: 2, secretValues: [
                             [envVar: 'RABBITMQ_USERNAME', vaultKey: 'RABBITMQ_USERNAME'],
                             [envVar: 'RABBITMQ_PASSWORD', vaultKey: 'RABBITMQ_PASSWORD'],
                         ]],
-                        [path: 'secret/fortivus/storage',    engineVersion: 2, secretValues: [
+                        [path: 'fortivus/storage',    engineVersion: 2, secretValues: [
                             [envVar: 'S3_ACCESS_KEY', vaultKey: 'S3_ACCESS_KEY'],
                             [envVar: 'S3_SECRET_KEY', vaultKey: 'S3_SECRET_KEY'],
                         ]],
-                        [path: 'secret/fortivus/nasa-firms', engineVersion: 2, secretValues: [
+                        [path: 'fortivus/nasa-firms', engineVersion: 2, secretValues: [
                             [envVar: 'NASA_FIRMS_MAP_KEY', vaultKey: 'NASA_FIRMS_MAP_KEY'],
                         ]],
                     ]
