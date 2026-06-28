@@ -34,14 +34,20 @@ services:
       KC_DB_PASSWORD: ${POSTGRES_PASSWORD}
       KEYCLOAK_ADMIN: ${KEYCLOAK_ADMIN}
       KEYCLOAK_ADMIN_PASSWORD: ${KEYCLOAK_ADMIN_PASSWORD}
-      KC_HOSTNAME: ${DOMAIN}
-      KC_HOSTNAME_PORT: 9000
-      KC_HOSTNAME_STRICT_HTTPS: false
+      KC_PROXY_HEADERS: xforwarded
+      KC_HTTP_ENABLED: true
+      KC_HOSTNAME_URL: https://auth.${DOMAIN}
+      KC_HOSTNAME_ADMIN_URL: https://auth.${DOMAIN}
     command: start-dev --import-realm
     volumes:
       - ./keycloak/realm-export.json:/opt/keycloak/data/import/realm-export.json
-    ports:
-      - "9000:8080"
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.keycloak.rule=Host(`auth.${DOMAIN}`)"
+      - "traefik.http.routers.keycloak.entrypoints=websecure"
+      - "traefik.http.routers.keycloak.tls=true"
+      - "traefik.http.routers.keycloak.tls.certresolver=letsencrypt"
+      - "traefik.http.services.keycloak.loadbalancer.server.port=8080"
     networks:
       - fortivus-network-dev
 
@@ -100,7 +106,7 @@ services:
     container_name: fortivus-frontend-dev
     restart: always
     environment:
-      - VITE_KEYCLOAK_URL=http://${DOMAIN}:9000
+      - VITE_KEYCLOAK_URL=https://auth.${DOMAIN}
       - VITE_API_SSR_BASE_URL=http://traefik/combate/api/v1
     labels:
       - "traefik.enable=true"
@@ -129,7 +135,7 @@ services:
       - SPRING_RABBITMQ_HOST=rabbitmq
       - SPRING_RABBITMQ_USERNAME=${RABBITMQ_USERNAME}
       - SPRING_RABBITMQ_PASSWORD=${RABBITMQ_PASSWORD}
-      - SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_ISSUER_URI=http://keycloak:8080/realms/fortivus
+      - SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_ISSUER_URI=https://auth.${DOMAIN}/realms/fortivus
       - SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_JWK_SET_URI=http://keycloak:8080/realms/fortivus/protocol/openid-connect/certs
       - FORTIVUS_STORAGE_S3_ENDPOINT=http://seaweedfs:8333
       - FORTIVUS_STORAGE_S3_ACCESS_KEY=${S3_ACCESS_KEY}
@@ -169,7 +175,7 @@ services:
       - SEAWEEDFS_S3_ENDPOINT=http://seaweedfs:8333
       - SEAWEEDFS_S3_ACCESS_KEY=${S3_ACCESS_KEY}
       - SEAWEEDFS_S3_SECRET_KEY=${S3_SECRET_KEY}
-      - KEYCLOAK_ISSUER_URI=http://keycloak:8080/realms/fortivus
+      - KEYCLOAK_ISSUER_URI=https://auth.${DOMAIN}/realms/fortivus
     depends_on:
       - postgres
       - rabbitmq
