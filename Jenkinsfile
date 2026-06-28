@@ -2,13 +2,14 @@ pipeline {
     agent any
 
     parameters {
-        string(name: 'VPS_HOST', defaultValue: '', description: 'IP ou dominio publico da VPS (ex: 192.168.1.100)')
+        string(name: 'DOMAIN', defaultValue: '', description: 'Dominio publico da VPS (ex: fortivus.duckdns.org)')
     }
 
     environment {
         COMPOSE_FILE   = 'src/infra/dev/docker-compose.yml'
         ENV_FILE       = 'src/infra/dev/.env'
         WORKSPACE_ROOT = '/var/jenkins_home/workspace'
+        ACME_EMAIL     = 'theravishgamer@gmail.com'
     }
 
     stages {
@@ -85,7 +86,8 @@ pipeline {
                         printf '%s=%s\\n' 'S3_ACCESS_KEY'           "\${S3_ACCESS_KEY}"
                         printf '%s=%s\\n' 'S3_SECRET_KEY'           "\${S3_SECRET_KEY}"
                         printf '%s=%s\\n' 'NASA_FIRMS_MAP_KEY'      "\${NASA_FIRMS_MAP_KEY}"
-                        printf '%s=%s\\n' 'VPS_HOST'                '${params.VPS_HOST}'
+                        printf '%s=%s\\n' 'DOMAIN'                  '${params.DOMAIN}'
+                        printf '%s=%s\\n' 'ACME_EMAIL'              '${ACME_EMAIL}'
                         } > "${ENV_FILE}"
                         echo 'Arquivo .env gerado com sucesso.'
                     """
