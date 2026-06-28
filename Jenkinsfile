@@ -2,7 +2,7 @@ pipeline {
     agent any
 
     parameters {
-        string(name: 'DOMAIN', defaultValue: '', description: 'Dominio publico da VPS (ex: fortivus.duckdns.org)')
+        string(name: 'DOMAIN', defaultValue: '', description: 'Dominio publico da VPS (ex: fortivus.xyz)')
     }
 
     environment {
@@ -10,9 +10,21 @@ pipeline {
         ENV_FILE       = 'src/infra/dev/.env'
         WORKSPACE_ROOT = '/var/jenkins_home/workspace'
         ACME_EMAIL     = 'theravishgamer@gmail.com'
+        DEPLOY_DOMAIN  = "${params.DOMAIN}"
     }
 
     stages {
+
+        stage('Validar parametros') {
+            steps {
+                script {
+                    if (!env.DEPLOY_DOMAIN?.trim()) {
+                        error 'Parametro DOMAIN e obrigatorio. Ex: fortivus.xyz'
+                    }
+                    echo "Dominio: ${env.DEPLOY_DOMAIN}"
+                }
+            }
+        }
 
         stage('Checkout') {
             steps {
@@ -86,10 +98,10 @@ pipeline {
                         printf '%s=%s\\n' 'S3_ACCESS_KEY'           "\${S3_ACCESS_KEY}"
                         printf '%s=%s\\n' 'S3_SECRET_KEY'           "\${S3_SECRET_KEY}"
                         printf '%s=%s\\n' 'NASA_FIRMS_MAP_KEY'      "\${NASA_FIRMS_MAP_KEY}"
-                        printf '%s=%s\\n' 'DOMAIN'                  '${params.DOMAIN}'
-                        printf '%s=%s\\n' 'ACME_EMAIL'              '${ACME_EMAIL}'
-                        } > "${ENV_FILE}"
-                        echo 'Arquivo .env gerado com sucesso.'
+                        printf '%s=%s\\n' 'DOMAIN'                  "\${DEPLOY_DOMAIN}"
+                        printf '%s=%s\\n' 'ACME_EMAIL'              "\${ACME_EMAIL}"
+                        } > "\${ENV_FILE}"
+                        echo "Arquivo .env gerado para dominio: \${DEPLOY_DOMAIN}"
                     """
                 }
             }
@@ -116,7 +128,7 @@ pipeline {
             echo 'Deploy falhou. Verifique os logs acima.'
         }
         success {
-            echo 'Deploy concluido com sucesso.'
+            echo "Deploy concluido com sucesso em https://${env.DEPLOY_DOMAIN}"
         }
     }
 }
