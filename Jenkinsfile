@@ -73,27 +73,21 @@ pipeline {
                     ]
                 ) {
                     sh """
-                        python3 -c "
-import os
-entries = [
-    ('POSTGRES_USER',         os.environ['POSTGRES_USER']),
-    ('POSTGRES_PASSWORD',     os.environ['POSTGRES_PASSWORD']),
-    ('POSTGRES_DB',           os.environ['POSTGRES_DB']),
-    ('KEYCLOAK_POSTGRES_DB',  os.environ['KEYCLOAK_POSTGRES_DB']),
-    ('KEYCLOAK_ADMIN',        os.environ['KEYCLOAK_ADMIN']),
-    ('KEYCLOAK_ADMIN_PASSWORD', os.environ['KEYCLOAK_ADMIN_PASSWORD']),
-    ('RABBITMQ_USERNAME',     os.environ['RABBITMQ_USERNAME']),
-    ('RABBITMQ_PASSWORD',     os.environ['RABBITMQ_PASSWORD']),
-    ('S3_ACCESS_KEY',         os.environ['S3_ACCESS_KEY']),
-    ('S3_SECRET_KEY',         os.environ['S3_SECRET_KEY']),
-    ('NASA_FIRMS_MAP_KEY',    os.environ['NASA_FIRMS_MAP_KEY']),
-    ('VPS_HOST',              '${params.VPS_HOST}'),
-]
-with open('${ENV_FILE}', 'w') as f:
-    for k, v in entries:
-        f.write(f'{k}={v}\\n')
-print('Arquivo .env gerado com sucesso.')
-"
+                        {
+                        printf '%s=%s\\n' 'POSTGRES_USER'           "\${POSTGRES_USER}"
+                        printf '%s=%s\\n' 'POSTGRES_PASSWORD'       "\${POSTGRES_PASSWORD}"
+                        printf '%s=%s\\n' 'POSTGRES_DB'             "\${POSTGRES_DB}"
+                        printf '%s=%s\\n' 'KEYCLOAK_POSTGRES_DB'    "\${KEYCLOAK_POSTGRES_DB}"
+                        printf '%s=%s\\n' 'KEYCLOAK_ADMIN'          "\${KEYCLOAK_ADMIN}"
+                        printf '%s=%s\\n' 'KEYCLOAK_ADMIN_PASSWORD' "\${KEYCLOAK_ADMIN_PASSWORD}"
+                        printf '%s=%s\\n' 'RABBITMQ_USERNAME'       "\${RABBITMQ_USERNAME}"
+                        printf '%s=%s\\n' 'RABBITMQ_PASSWORD'       "\${RABBITMQ_PASSWORD}"
+                        printf '%s=%s\\n' 'S3_ACCESS_KEY'           "\${S3_ACCESS_KEY}"
+                        printf '%s=%s\\n' 'S3_SECRET_KEY'           "\${S3_SECRET_KEY}"
+                        printf '%s=%s\\n' 'NASA_FIRMS_MAP_KEY'      "\${NASA_FIRMS_MAP_KEY}"
+                        printf '%s=%s\\n' 'VPS_HOST'                '${params.VPS_HOST}'
+                        } > "${ENV_FILE}"
+                        echo 'Arquivo .env gerado com sucesso.'
                     """
                 }
             }
