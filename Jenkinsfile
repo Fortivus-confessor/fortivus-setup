@@ -1,8 +1,8 @@
 pipeline {
     agent {
-        docker {
-            image 'docker:27-git'
-            args  '-v /var/run/docker.sock:/var/run/docker.sock -v /var/jenkins_home:/var/jenkins_home -u root'
+        dockerfile {
+            filename 'Dockerfile.agent'
+            args     '-v /var/run/docker.sock:/var/run/docker.sock -v /var/jenkins_home:/var/jenkins_home -u root'
         }
     }
 
