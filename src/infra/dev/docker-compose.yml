@@ -108,7 +108,27 @@ services:
     networks:
       - fortivus-network-dev
 
-  # 7. Backend (Fortivus V2)
+  # 7. Frontend (Fire Command Center) — SPA estática servida por nginx
+  frontend:
+    build:
+      context: ../../../../fire-command-center
+      dockerfile: Dockerfile
+      args:
+        - VITE_KEYCLOAK_URL=https://auth.${DOMAIN}
+        - VITE_API_PUBLIC_BASE=
+    container_name: fortivus-frontend-dev
+    restart: always
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.frontend.rule=Host(`${DOMAIN}`)"
+      - "traefik.http.routers.frontend.entrypoints=websecure"
+      - "traefik.http.routers.frontend.tls=true"
+      - "traefik.http.routers.frontend.tls.certresolver=letsencrypt"
+      - "traefik.http.services.frontend.loadbalancer.server.port=80"
+    networks:
+      - fortivus-network-dev
+
+  # 8. Backend (Fortivus V2)
   backend:
     build:
       context: ../../../../fortivus-v2

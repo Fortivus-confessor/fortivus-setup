@@ -60,6 +60,7 @@ pipeline {
                     clone_or_pull https://github.com/Fortivus-confessor/fortivus-backend        ${WORKSPACE_ROOT}/fortivus-v2
                     clone_or_pull https://github.com/Fortivus-confessor/attachment-service      ${WORKSPACE_ROOT}/attachment-service
                     clone_or_pull https://github.com/Fortivus-confessor/fire-event-service      ${WORKSPACE_ROOT}/fire-event-service  main
+                    clone_or_pull https://github.com/Fortivus-confessor/fire-command-center     ${WORKSPACE_ROOT}/fire-command-center
                     # Evita race condition do Jenkins plugin (Durable Task) em falhas rápidas
                     sleep 2
                 '''
