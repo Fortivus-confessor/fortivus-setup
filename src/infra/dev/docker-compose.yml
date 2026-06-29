@@ -149,7 +149,7 @@ services:
       - KEYCLOAK_SERVER_URL=http://keycloak:8080
       - VAULT_ROLE_ID=${VAULT_ROLE_ID}
       - VAULT_SECRET_ID=${VAULT_SECRET_ID}
-      - VAULT_ADDR=${VAULT_ADDR}
+      - VAULT_ADDR=http://host.docker.internal:8200
     extra_hosts:
       - "host.docker.internal:host-gateway"
     depends_on:
@@ -184,7 +184,7 @@ services:
       - KEYCLOAK_ISSUER_URI=https://auth.${DOMAIN}/realms/fortivus
       - VAULT_ROLE_ID=${VAULT_ROLE_ID}
       - VAULT_SECRET_ID=${VAULT_SECRET_ID}
-      - VAULT_ADDR=${VAULT_ADDR}
+      - VAULT_ADDR=http://host.docker.internal:8200
     extra_hosts:
       - "host.docker.internal:host-gateway"
     depends_on:
@@ -216,7 +216,7 @@ services:
       - SPRING_RABBITMQ_HOST=rabbitmq
       - VAULT_ROLE_ID=${VAULT_ROLE_ID}
       - VAULT_SECRET_ID=${VAULT_SECRET_ID}
-      - VAULT_ADDR=${VAULT_ADDR}
+      - VAULT_ADDR=http://host.docker.internal:8200
     extra_hosts:
       - "host.docker.internal:host-gateway"
     depends_on:
