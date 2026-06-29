@@ -108,27 +108,7 @@ services:
     networks:
       - fortivus-network-dev
 
-  # 7. Frontend (Fire Command Center)
-  frontend:
-    build:
-      context: ../../../../fire-command-center
-      dockerfile: Dockerfile
-    container_name: fortivus-frontend-dev
-    restart: always
-    environment:
-      - VITE_KEYCLOAK_URL=https://auth.${DOMAIN}
-      - VITE_API_SSR_BASE_URL=http://traefik/combate/api/v1
-    labels:
-      - "traefik.enable=true"
-      - "traefik.http.routers.frontend.rule=Host(`${DOMAIN}`)"
-      - "traefik.http.routers.frontend.entrypoints=websecure"
-      - "traefik.http.routers.frontend.tls=true"
-      - "traefik.http.routers.frontend.tls.certresolver=letsencrypt"
-      - "traefik.http.services.frontend.loadbalancer.server.port=5173"
-    networks:
-      - fortivus-network-dev
-
-  # 8. Backend (Fortivus V2)
+  # 7. Backend (Fortivus V2)
   backend:
     build:
       context: ../../../../fortivus-v2
