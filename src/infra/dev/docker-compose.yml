@@ -1,7 +1,9 @@
 services:
   # 1. Banco de Dados Central (PostgreSQL + PostGIS)
   postgres:
-    image: postgis/postgis:16-3.5
+    build:
+      context: ./postgres
+      dockerfile: Dockerfile
     container_name: fortivus-postgres-dev
     restart: always
     environment:
@@ -10,7 +12,6 @@ services:
       POSTGRES_DB: ${POSTGRES_DB}
     volumes:
       - postgres_data:/var/lib/postgresql/data
-      - ./postgres/init.sql:/docker-entrypoint-initdb.d/init.sql
     networks:
       - fortivus-network-dev
 
