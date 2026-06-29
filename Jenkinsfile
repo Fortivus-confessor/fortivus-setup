@@ -48,7 +48,7 @@ pipeline {
 
                     clone_or_pull https://github.com/Fortivus-confessor/fortivus-backend        ${WORKSPACE_ROOT}/fortivus-v2
                     clone_or_pull https://github.com/Fortivus-confessor/attachment-service      ${WORKSPACE_ROOT}/attachment-service
-                    clone_or_pull https://github.com/Fortivus-confessor/fire-event-service      ${WORKSPACE_ROOT}/fire-event-service  feature/role-permissions
+                    clone_or_pull https://github.com/Fortivus-confessor/fire-event-service      ${WORKSPACE_ROOT}/fire-event-service  main
                     clone_or_pull https://github.com/Fortivus-confessor/fire-command-center     ${WORKSPACE_ROOT}/fire-command-center
                 '''
             }
@@ -59,9 +59,11 @@ pipeline {
                 withVault(
                     configuration: [
                         vaultUrl: "${VAULT_ADDR}",
-                        vaultCredentialId: 'vault-token'
+                        vaultCredentialId: 'vault-approle',
+                        engineVersion: 2
                     ],
                     vaultSecrets: [
+                        // Secrets para containers de infraestrutura (PostgreSQL, Keycloak, RabbitMQ)
                         [path: 'fortivus/database',   engineVersion: 2, secretValues: [
                             [envVar: 'POSTGRES_USER',         vaultKey: 'POSTGRES_USER'],
                             [envVar: 'POSTGRES_PASSWORD',     vaultKey: 'POSTGRES_PASSWORD'],
@@ -76,12 +78,10 @@ pipeline {
                             [envVar: 'RABBITMQ_USERNAME', vaultKey: 'RABBITMQ_USERNAME'],
                             [envVar: 'RABBITMQ_PASSWORD', vaultKey: 'RABBITMQ_PASSWORD'],
                         ]],
-                        [path: 'fortivus/storage',    engineVersion: 2, secretValues: [
-                            [envVar: 'S3_ACCESS_KEY', vaultKey: 'S3_ACCESS_KEY'],
-                            [envVar: 'S3_SECRET_KEY', vaultKey: 'S3_SECRET_KEY'],
-                        ]],
-                        [path: 'fortivus/nasa-firms', engineVersion: 2, secretValues: [
-                            [envVar: 'NASA_FIRMS_MAP_KEY', vaultKey: 'NASA_FIRMS_MAP_KEY'],
+                        // AppRole para que os servicos Spring se autentiquem no Vault em runtime
+                        [path: 'fortivus/approle',    engineVersion: 2, secretValues: [
+                            [envVar: 'SVC_VAULT_ROLE_ID',   vaultKey: 'role_id'],
+                            [envVar: 'SVC_VAULT_SECRET_ID', vaultKey: 'secret_id'],
                         ]],
                     ]
                 ) {
@@ -95,9 +95,9 @@ pipeline {
                         printf '%s=%s\\n' 'KEYCLOAK_ADMIN_PASSWORD' "\${KEYCLOAK_ADMIN_PASSWORD}"
                         printf '%s=%s\\n' 'RABBITMQ_USERNAME'       "\${RABBITMQ_USERNAME}"
                         printf '%s=%s\\n' 'RABBITMQ_PASSWORD'       "\${RABBITMQ_PASSWORD}"
-                        printf '%s=%s\\n' 'S3_ACCESS_KEY'           "\${S3_ACCESS_KEY}"
-                        printf '%s=%s\\n' 'S3_SECRET_KEY'           "\${S3_SECRET_KEY}"
-                        printf '%s=%s\\n' 'NASA_FIRMS_MAP_KEY'      "\${NASA_FIRMS_MAP_KEY}"
+                        printf '%s=%s\\n' 'VAULT_ROLE_ID'           "\${SVC_VAULT_ROLE_ID}"
+                        printf '%s=%s\\n' 'VAULT_SECRET_ID'         "\${SVC_VAULT_SECRET_ID}"
+                        printf '%s=%s\\n' 'VAULT_ADDR'              "${VAULT_ADDR}"
                         printf '%s=%s\\n' 'DOMAIN'                  "\${DEPLOY_DOMAIN}"
                         printf '%s=%s\\n' 'ACME_EMAIL'              "\${ACME_EMAIL}"
                         } > "\${ENV_FILE}"
