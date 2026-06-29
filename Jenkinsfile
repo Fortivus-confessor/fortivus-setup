@@ -43,6 +43,14 @@ pipeline {
                     clone_or_pull() {
                         local repo=$1 dir=$2 branch=${3:-main}
                         if [ -d "$dir/.git" ]; then
+                            # Verifica se o repo não está corrompido, se estiver, remove
+                            if ! git -C "$dir" status > /dev/null 2>&1; then
+                                echo "Repositorio corrompido em $dir. Removendo..."
+                                rm -rf "$dir"
+                            fi
+                        fi
+                        
+                        if [ -d "$dir/.git" ]; then
                             git -C "$dir" fetch origin "$branch"
                             git -C "$dir" checkout "$branch"
                             git -C "$dir" pull origin "$branch"
@@ -51,10 +59,13 @@ pipeline {
                         fi
                     }
 
-                    clone_or_pull https://github.com/Fortivus-confessor/fortivus-v2             ${WORKSPACE_ROOT}/fortivus-v2
+                    clone_or_pull https://github.com/Fortivus-confessor/fortivus-backend        ${WORKSPACE_ROOT}/fortivus-v2
                     clone_or_pull https://github.com/Fortivus-confessor/attachment-service      ${WORKSPACE_ROOT}/attachment-service
                     clone_or_pull https://github.com/Fortivus-confessor/fire-event-service      ${WORKSPACE_ROOT}/fire-event-service  main
                     clone_or_pull https://github.com/Fortivus-confessor/fire-command-center     ${WORKSPACE_ROOT}/fire-command-center
+                    
+                    # Evita race condition do Jenkins plugin (Durable Task) em falhas rápidas
+                    sleep 2
                 '''
             }
         }
