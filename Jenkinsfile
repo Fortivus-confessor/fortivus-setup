@@ -99,7 +99,7 @@ pipeline {
                         ]],
                     ]
                 ) {
-                    sh """
+                    sh """#!/bin/bash
                         {
                         printf '%s=%s\\n' 'POSTGRES_USER'           "\${POSTGRES_USER//\\\$/\$\$}"
                         printf '%s=%s\\n' 'POSTGRES_PASSWORD'       "\${POSTGRES_PASSWORD//\\\$/\$\$}"
