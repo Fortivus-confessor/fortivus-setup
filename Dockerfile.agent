@@ -1,2 +1,2 @@
 FROM docker:27-cli
-RUN apk add --no-cache git bash
+RUN apk add --no-cache git bash procps coreutils
