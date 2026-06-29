@@ -1,28 +1,40 @@
 {
   "realm": "fortivus",
   "enabled": true,
+  "sslRequired": "external",
+  "registrationAllowed": false,
+  "loginWithEmailAllowed": true,
+  "duplicateEmailsAllowed": false,
+  "resetPasswordAllowed": false,
+  "editUsernameAllowed": false,
+  "bruteForceProtected": false,
   "clients": [
     {
       "clientId": "fortivus-web",
+      "name": "Fortivus Web",
       "enabled": true,
-      "clientAuthenticatorType": "client-secret",
-      "secret": "fortivus-client-secret",
-      "redirectUris": [
-        "*"
-      ],
-      "webOrigins": [
-        "+"
-      ],
+      "protocol": "openid-connect",
       "publicClient": true,
-      "protocol": "openid-connect"
+      "standardFlowEnabled": true,
+      "implicitFlowEnabled": false,
+      "directAccessGrantsEnabled": true,
+      "serviceAccountsEnabled": false,
+      "bearerOnly": false,
+      "frontchannelLogout": true,
+      "redirectUris": ["*"],
+      "webOrigins": ["+"],
+      "attributes": {
+        "post.logout.redirect.uris": "*",
+        "pkce.code.challenge.method": "S256"
+      }
     }
   ],
   "roles": {
     "realm": [
-      { "name": "ROLE_ADMIN" },
-      { "name": "ROLE_CENTRO_COMANDO_CENTRAL" },
-      { "name": "ROLE_CENTRO_COMANDO" },
-      { "name": "ROLE_COMBATENTE" }
+      { "name": "ROLE_ADMIN",                  "description": "Administrador do sistema" },
+      { "name": "ROLE_CENTRO_COMANDO_CENTRAL", "description": "Comandante Central" },
+      { "name": "ROLE_CENTRO_COMANDO",         "description": "Operador de Centro de Comando" },
+      { "name": "ROLE_COMBATENTE",             "description": "Combatente de Campo" }
     ]
   },
   "users": [
@@ -35,7 +47,7 @@
       "credentials": [
         { "type": "password", "value": "123456", "temporary": false }
       ],
-      "realmRoles": [ "ROLE_ADMIN" ]
+      "realmRoles": ["ROLE_ADMIN"]
     },
     {
       "username": "comandante",
@@ -46,7 +58,7 @@
       "credentials": [
         { "type": "password", "value": "123456", "temporary": false }
       ],
-      "realmRoles": [ "ROLE_CENTRO_COMANDO_CENTRAL" ]
+      "realmRoles": ["ROLE_CENTRO_COMANDO_CENTRAL"]
     },
     {
       "username": "operador",
@@ -57,7 +69,7 @@
       "credentials": [
         { "type": "password", "value": "123456", "temporary": false }
       ],
-      "realmRoles": [ "ROLE_CENTRO_COMANDO" ]
+      "realmRoles": ["ROLE_CENTRO_COMANDO"]
     },
     {
       "username": "combatente",
@@ -68,7 +80,7 @@
       "credentials": [
         { "type": "password", "value": "123456", "temporary": false }
       ],
-      "realmRoles": [ "ROLE_COMBATENTE" ]
+      "realmRoles": ["ROLE_COMBATENTE"]
     }
   ]
 }
