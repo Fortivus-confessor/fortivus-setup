@@ -39,7 +39,10 @@ pipeline {
 
         stage('Clonar repositorios') {
             steps {
-                sh '''
+                sh '''#!/bin/bash
+                    set -x
+                    trap 'sleep 2' EXIT
+
                     clone_or_pull() {
                         local repo=$1 dir=$2 branch=${3:-main}
                         if [ -d "$dir/.git" ]; then
