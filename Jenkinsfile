@@ -1,5 +1,10 @@
 pipeline {
-    agent any
+    agent {
+        docker {
+            image 'docker:27-git'
+            args  '-v /var/run/docker.sock:/var/run/docker.sock -v /var/jenkins_home:/var/jenkins_home -u root'
+        }
+    }
 
     parameters {
         string(name: 'DOMAIN', defaultValue: '', description: 'Dominio publico da VPS (ex: fortivus.xyz)')
