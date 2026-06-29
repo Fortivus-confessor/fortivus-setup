@@ -111,7 +111,7 @@ pipeline {
                         printf '%s=%s\\n' 'RABBITMQ_PASSWORD'       "\${RABBITMQ_PASSWORD}"
                         printf '%s=%s\\n' 'VAULT_ROLE_ID'           "\${SVC_VAULT_ROLE_ID}"
                         printf '%s=%s\\n' 'VAULT_SECRET_ID'         "\${SVC_VAULT_SECRET_ID}"
-                        printf '%s=%s\\n' 'VAULT_ADDR'              "${VAULT_ADDR}"
+                        printf '%s=%s\\n' 'VAULT_ADDR'              "http://host.docker.internal:8200"
                         printf '%s=%s\\n' 'DOMAIN'                  "\${DEPLOY_DOMAIN}"
                         printf '%s=%s\\n' 'ACME_EMAIL'              "\${ACME_EMAIL}"
                         } > "\${ENV_FILE}"
