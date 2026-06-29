@@ -39,23 +39,30 @@ pipeline {
 
         stage('Clonar repositorios') {
             steps {
-                sh '''
-                    clone_or_pull() {
-                        local repo=$1 dir=$2 branch=${3:-main}
-                        if [ -d "$dir/.git" ]; then
-                            git -C "$dir" fetch origin "$branch"
-                            git -C "$dir" checkout "$branch"
-                            git -C "$dir" pull origin "$branch"
-                        else
-                            git clone --depth 1 -b "$branch" "$repo" "$dir"
-                        fi
-                    }
+                withCredentials([usernamePassword(
+                    credentialsId: 'github-token',
+                    usernameVariable: 'GIT_USER',
+                    passwordVariable: 'GIT_TOKEN'
+                )]) {
+                    sh '''
+                        clone_or_pull() {
+                            local repo=$1 dir=$2 branch=${3:-main}
+                            local auth_repo=$(echo "$repo" | sed "s|https://|https://${GIT_USER}:${GIT_TOKEN}@|")
+                            if [ -d "$dir/.git" ]; then
+                                git -C "$dir" fetch origin "$branch"
+                                git -C "$dir" checkout "$branch"
+                                git -C "$dir" pull origin "$branch"
+                            else
+                                git clone --depth 1 -b "$branch" "$auth_repo" "$dir"
+                            fi
+                        }
 
-                    clone_or_pull https://github.com/Fortivus-confessor/fortivus-backend        ${WORKSPACE_ROOT}/fortivus-v2
-                    clone_or_pull https://github.com/Fortivus-confessor/attachment-service      ${WORKSPACE_ROOT}/attachment-service
-                    clone_or_pull https://github.com/Fortivus-confessor/fire-event-service      ${WORKSPACE_ROOT}/fire-event-service  main
-                    clone_or_pull https://github.com/Fortivus-confessor/fire-command-center     ${WORKSPACE_ROOT}/fire-command-center
-                '''
+                        clone_or_pull https://github.com/Fortivus-confessor/fortivus-backend        ${WORKSPACE_ROOT}/fortivus-v2
+                        clone_or_pull https://github.com/Fortivus-confessor/attachment-service      ${WORKSPACE_ROOT}/attachment-service
+                        clone_or_pull https://github.com/Fortivus-confessor/fire-event-service      ${WORKSPACE_ROOT}/fire-event-service  main
+                        clone_or_pull https://github.com/Fortivus-confessor/fire-command-center     ${WORKSPACE_ROOT}/fire-command-center
+                    '''
+                }
             }
         }
 
