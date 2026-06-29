@@ -1,2 +1,8 @@
-FROM docker:27-cli
-RUN apk add --no-cache git bash procps coreutils
+FROM debian:bullseye-slim
+
+# Instala ferramentas basicas e dependencias do Jenkins (durable-task)
+RUN apt-get update && apt-get install -y git bash procps coreutils curl && rm -rf /var/lib/apt/lists/*
+
+# Copia o client do Docker e o plugin do Docker Compose da imagem oficial
+COPY --from=docker:27-cli /usr/local/bin/docker /usr/local/bin/docker
+COPY --from=docker:27-cli /usr/local/libexec/docker/cli-plugins/docker-compose /usr/local/libexec/docker/cli-plugins/docker-compose
