@@ -1,0 +1,334 @@
+services:
+
+  # ─── INFRAESTRUTURA ───────────────────────────────────────────────────────────
+
+  # 1. Banco de Dados Central (PostgreSQL + PostGIS)
+  postgres:
+    image: postgis/postgis:16-3.5
+    container_name: fortivus-postgres-hom
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./postgres/init.sql:/docker-entrypoint-initdb.d/init.sql:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 30s
+    networks:
+      - fortivus-network-hom
+
+  # 2. Cache (Redis)
+  redis:
+    image: redis:7-alpine
+    container_name: fortivus-redis-hom
+    restart: unless-stopped
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+      start_period: 10s
+    networks:
+      - fortivus-network-hom
+
+  # 3. Mensageria (RabbitMQ)
+  rabbitmq:
+    image: rabbitmq:3.13-management-alpine
+    container_name: fortivus-rabbitmq-hom
+    restart: unless-stopped
+    environment:
+      RABBITMQ_DEFAULT_USER: ${RABBITMQ_USERNAME}
+      RABBITMQ_DEFAULT_PASS: ${RABBITMQ_PASSWORD}
+    volumes:
+      - rabbitmq_data:/var/lib/rabbitmq
+      - ./rabbitmq/rabbitmq.conf:/etc/rabbitmq/rabbitmq.conf:ro
+      - ./rabbitmq/definitions.json:/etc/rabbitmq/definitions.json:ro
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "-q", "ping"]
+      interval: 15s
+      timeout: 10s
+      retries: 10
+      start_period: 30s
+    networks:
+      - fortivus-network-hom
+
+  # 4. Gerenciamento de Secrets (HashiCorp Vault)
+  vault:
+    image: hashicorp/vault:1.17
+    container_name: fortivus-vault-hom
+    restart: unless-stopped
+    cap_add:
+      - IPC_LOCK
+    environment:
+      - VAULT_ADDR=http://127.0.0.1:8200
+      - VAULT_API_ADDR=http://vault:8200
+    volumes:
+      - ./vault/config/vault.hcl:/vault/config/vault.hcl:ro
+      - vault_data:/vault/data
+    command: server -config=/vault/config/vault.hcl
+    healthcheck:
+      test: ["CMD", "vault", "status", "-address=http://127.0.0.1:8200"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+    networks:
+      - fortivus-network-hom
+
+  # 5. Gestão de Identidade (Keycloak)
+  keycloak:
+    image: quay.io/keycloak/keycloak:26.2.4
+    container_name: fortivus-keycloak-hom
+    restart: unless-stopped
+    environment:
+      KC_DB: postgres
+      KC_DB_URL: jdbc:postgresql://postgres:5432/${KEYCLOAK_POSTGRES_DB:-keycloak}
+      KC_DB_USERNAME: ${POSTGRES_USER}
+      KC_DB_PASSWORD: ${POSTGRES_PASSWORD}
+      KEYCLOAK_ADMIN: ${KEYCLOAK_ADMIN}
+      KEYCLOAK_ADMIN_PASSWORD: ${KEYCLOAK_ADMIN_PASSWORD}
+      KC_PROXY_HEADERS: xforwarded
+      KC_HTTP_ENABLED: "true"
+      KC_HOSTNAME: https://auth.${DOMAIN}
+      KC_HOSTNAME_STRICT: "false"
+      KC_CACHE: local
+    command: start --import-realm
+    volumes:
+      - ./keycloak/realm-export.json:/opt/keycloak/data/import/realm-export.json:ro
+    depends_on:
+      postgres:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "exec 3<>/dev/tcp/localhost/8080 && echo -e 'GET /health/ready HTTP/1.1\\r\\nHost: localhost\\r\\n\\r\\n' >&3 && cat <&3 | grep -q '200 OK'"]
+      interval: 20s
+      timeout: 10s
+      retries: 10
+      start_period: 90s
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.keycloak.rule=Host(`auth.${DOMAIN}`)"
+      - "traefik.http.routers.keycloak.entrypoints=websecure"
+      - "traefik.http.routers.keycloak.tls=true"
+      - "traefik.http.routers.keycloak.tls.certresolver=letsencrypt"
+      - "traefik.http.services.keycloak.loadbalancer.server.port=8080"
+    networks:
+      - fortivus-network-hom
+
+  # 6. Object Storage (SeaweedFS)
+  seaweedfs:
+    image: chrislusf/seaweedfs:3.73
+    container_name: fortivus-seaweedfs-hom
+    restart: unless-stopped
+    command: server -s3
+    volumes:
+      - seaweedfs_data:/data
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.seaweedfs.rule=Host(`${DOMAIN}`) && PathPrefix(`/storage`)"
+      - "traefik.http.routers.seaweedfs.entrypoints=websecure"
+      - "traefik.http.routers.seaweedfs.tls=true"
+      - "traefik.http.routers.seaweedfs.tls.certresolver=letsencrypt"
+      - "traefik.http.services.seaweedfs.loadbalancer.server.port=8333"
+      - "traefik.http.routers.seaweedfs.middlewares=strip-storage@file"
+    networks:
+      - fortivus-network-hom
+
+  # 7. GIS Tile Server (Martin)
+  martin:
+    image: ghcr.io/maplibre/martin:v0.13.0
+    container_name: fortivus-martin-hom
+    restart: unless-stopped
+    environment:
+      - DATABASE_URL=postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB}
+    depends_on:
+      postgres:
+        condition: service_healthy
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.martin.rule=Host(`${DOMAIN}`) && PathPrefix(`/tiles`)"
+      - "traefik.http.routers.martin.entrypoints=websecure"
+      - "traefik.http.routers.martin.tls=true"
+      - "traefik.http.routers.martin.tls.certresolver=letsencrypt"
+      - "traefik.http.services.martin.loadbalancer.server.port=3000"
+      - "traefik.http.routers.martin.middlewares=strip-tiles@file"
+    networks:
+      - fortivus-network-hom
+
+  # 8. Edge Router / Proxy Reverso (Traefik)
+  traefik:
+    image: traefik:v3.1
+    container_name: fortivus-traefik-hom
+    restart: unless-stopped
+    command:
+      - "--certificatesresolvers.letsencrypt.acme.email=${ACME_EMAIL}"
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - ./traefik/traefik.yml:/etc/traefik/traefik.yml:ro
+      - ./traefik/dynamic:/etc/traefik/dynamic:ro
+      - letsencrypt_data:/letsencrypt
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.traefik-dashboard.rule=Host(`traefik.${DOMAIN}`)"
+      - "traefik.http.routers.traefik-dashboard.entrypoints=websecure"
+      - "traefik.http.routers.traefik-dashboard.tls=true"
+      - "traefik.http.routers.traefik-dashboard.tls.certresolver=letsencrypt"
+      - "traefik.http.routers.traefik-dashboard.service=api@internal"
+      - "traefik.http.routers.traefik-dashboard.middlewares=dashboard-auth@file"
+    networks:
+      - fortivus-network-hom
+
+  # ─── APLICAÇÕES ───────────────────────────────────────────────────────────────
+
+  # 9. Frontend (Fire Command Center)
+  frontend:
+    build:
+      context: ../../../../fire-command-center
+      dockerfile: Dockerfile
+      args:
+        VITE_KEYCLOAK_URL: https://auth.${DOMAIN}
+        VITE_API_PUBLIC_BASE: ""
+    container_name: fortivus-frontend-hom
+    restart: unless-stopped
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.frontend.rule=Host(`${DOMAIN}`)"
+      - "traefik.http.routers.frontend.entrypoints=websecure"
+      - "traefik.http.routers.frontend.tls=true"
+      - "traefik.http.routers.frontend.tls.certresolver=letsencrypt"
+      - "traefik.http.services.frontend.loadbalancer.server.port=80"
+    networks:
+      - fortivus-network-hom
+
+  # 10. Backend Principal (Fortivus V2)
+  backend:
+    build:
+      context: ../../../../fortivus-v2
+      dockerfile: Dockerfile
+    container_name: fortivus-backend-hom
+    restart: unless-stopped
+    environment:
+      - SPRING_PROFILES_ACTIVE=dev
+      - VAULT_ADDR=http://vault:8200
+      - VAULT_ROLE_ID=${BACKEND_VAULT_ROLE_ID}
+      - VAULT_SECRET_ID=${BACKEND_VAULT_SECRET_ID}
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres:5432/${POSTGRES_DB}
+      - SPRING_DATA_REDIS_HOST=redis
+      - SPRING_DATA_REDIS_PORT=6379
+      - SPRING_RABBITMQ_HOST=rabbitmq
+      - SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_ISSUER_URI=https://auth.${DOMAIN}/realms/fortivus
+      - SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_JWK_SET_URI=http://keycloak:8080/realms/fortivus/protocol/openid-connect/certs
+      - FORTIVUS_STORAGE_S3_ENDPOINT=http://seaweedfs:8333
+      - FORTIVUS_STORAGE_S3_PUBLIC_URL=https://${DOMAIN}/storage
+      - KEYCLOAK_SERVER_URL=http://keycloak:8080
+      - KEYCLOAK_REALM=fortivus
+      - KEYCLOAK_CLIENT_ID=admin-cli
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.backend.rule=Host(`${DOMAIN}`) && PathPrefix(`/combate`)"
+      - "traefik.http.routers.backend.entrypoints=websecure"
+      - "traefik.http.routers.backend.tls=true"
+      - "traefik.http.routers.backend.tls.certresolver=letsencrypt"
+      - "traefik.http.services.backend.loadbalancer.server.port=8080"
+    networks:
+      - fortivus-network-hom
+
+  # 11. Serviço de Anexos (Attachment Service)
+  attachment:
+    build:
+      context: ../../../../attachment-service
+      dockerfile: Dockerfile
+    container_name: fortivus-attachment-hom
+    restart: unless-stopped
+    environment:
+      - SPRING_PROFILES_ACTIVE=dev
+      - VAULT_ADDR=http://vault:8200
+      - VAULT_ROLE_ID=${ATTACHMENT_VAULT_ROLE_ID}
+      - VAULT_SECRET_ID=${ATTACHMENT_VAULT_SECRET_ID}
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres:5432/${POSTGRES_DB}
+      - SPRING_RABBITMQ_HOST=rabbitmq
+      - SEAWEEDFS_S3_ENDPOINT=http://seaweedfs:8333
+      - SEAWEEDFS_PUBLIC_URL=https://${DOMAIN}/storage
+      - KEYCLOAK_ISSUER_URI=https://auth.${DOMAIN}/realms/fortivus
+    depends_on:
+      postgres:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.attachment.rule=Host(`${DOMAIN}`) && PathPrefix(`/api/v1/attachments`)"
+      - "traefik.http.routers.attachment.entrypoints=websecure"
+      - "traefik.http.routers.attachment.tls=true"
+      - "traefik.http.routers.attachment.tls.certresolver=letsencrypt"
+      - "traefik.http.services.attachment.loadbalancer.server.port=8082"
+    networks:
+      - fortivus-network-hom
+
+  # 12. Serviço de Focos de Calor (Fire Event Service)
+  fire-event-service:
+    build:
+      context: ../../../../fire-event-service
+      dockerfile: Dockerfile
+    container_name: fortivus-fire-event-hom
+    restart: unless-stopped
+    environment:
+      - SPRING_PROFILES_ACTIVE=dev
+      - VAULT_ADDR=http://vault:8200
+      - VAULT_ROLE_ID=${FIRE_EVENT_VAULT_ROLE_ID}
+      - VAULT_SECRET_ID=${FIRE_EVENT_VAULT_SECRET_ID}
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres:5432/${POSTGRES_DB}
+      - SPRING_RABBITMQ_HOST=rabbitmq
+    depends_on:
+      postgres:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.fireevents.rule=Host(`${DOMAIN}`) && PathPrefix(`/api/v1/fire-events`)"
+      - "traefik.http.routers.fireevents.entrypoints=websecure"
+      - "traefik.http.routers.fireevents.tls=true"
+      - "traefik.http.routers.fireevents.tls.certresolver=letsencrypt"
+      - "traefik.http.services.fireevents.loadbalancer.server.port=8084"
+    networks:
+      - fortivus-network-hom
+
+# ─── REDE ──────────────────────────────────────────────────────────────────────
+
+networks:
+  fortivus-network-hom:
+    driver: bridge
+
+# ─── VOLUMES ───────────────────────────────────────────────────────────────────
+
+volumes:
+  postgres_data:
+    driver: local
+  redis_data:
+    driver: local
+  rabbitmq_data:
+    driver: local
+  vault_data:
+    driver: local
+  seaweedfs_data:
+    driver: local
+  letsencrypt_data:
+    driver: local

@@ -1,0 +1,123 @@
+{
+  "realm": "fortivus",
+  "enabled": true,
+  "sslRequired": "external",
+  "registrationAllowed": false,
+  "loginWithEmailAllowed": true,
+  "duplicateEmailsAllowed": false,
+  "resetPasswordAllowed": false,
+  "editUsernameAllowed": false,
+  "bruteForceProtected": true,
+  "permanentLockout": false,
+  "maxFailureWaitSeconds": 900,
+  "minimumQuickLoginWaitSeconds": 60,
+  "waitIncrementSeconds": 60,
+  "quickLoginCheckMilliSeconds": 1000,
+  "maxDeltaTimeSeconds": 43200,
+  "failureFactor": 5,
+  "loginTheme": "fortivus",
+  "clients": [
+    {
+      "clientId": "fortivus-web",
+      "name": "Fortivus Web",
+      "description": "Cliente público para o frontend React",
+      "enabled": true,
+      "protocol": "openid-connect",
+      "publicClient": true,
+      "standardFlowEnabled": true,
+      "implicitFlowEnabled": false,
+      "directAccessGrantsEnabled": false,
+      "serviceAccountsEnabled": false,
+      "bearerOnly": false,
+      "frontchannelLogout": true,
+      "redirectUris": ["*"],
+      "webOrigins": ["*"],
+      "attributes": {
+        "post.logout.redirect.uris": "*",
+        "pkce.code.challenge.method": "S256"
+      }
+    }
+  ],
+  "roles": {
+    "realm": [
+      {
+        "name": "ROLE_ADMIN",
+        "description": "Administrador do sistema — acesso total"
+      },
+      {
+        "name": "ROLE_CENTRO_COMANDO_CENTRAL",
+        "description": "Comandante Central — gerencia todos os centros de comando"
+      },
+      {
+        "name": "ROLE_CENTRO_COMANDO",
+        "description": "Operador de Centro de Comando — gerencia seu próprio centro"
+      },
+      {
+        "name": "ROLE_COMBATENTE",
+        "description": "Combatente de Campo — responde a despachos atribuídos"
+      }
+    ]
+  },
+  "users": [
+    {
+      "username": "admin",
+      "enabled": true,
+      "email": "admin@fortivus.gov.br",
+      "firstName": "Administrador",
+      "lastName": "Geral",
+      "credentials": [
+        {
+          "type": "password",
+          "value": "TROCAR_SENHA_ANTES_DO_GO_LIVE",
+          "temporary": true
+        }
+      ],
+      "realmRoles": ["ROLE_ADMIN"]
+    },
+    {
+      "username": "comandante",
+      "enabled": true,
+      "email": "comandante@fortivus.gov.br",
+      "firstName": "Comandante",
+      "lastName": "Central",
+      "credentials": [
+        {
+          "type": "password",
+          "value": "TROCAR_SENHA_ANTES_DO_GO_LIVE",
+          "temporary": true
+        }
+      ],
+      "realmRoles": ["ROLE_CENTRO_COMANDO_CENTRAL"]
+    },
+    {
+      "username": "operador",
+      "enabled": true,
+      "email": "operador@fortivus.gov.br",
+      "firstName": "Operador",
+      "lastName": "Base",
+      "credentials": [
+        {
+          "type": "password",
+          "value": "TROCAR_SENHA_ANTES_DO_GO_LIVE",
+          "temporary": true
+        }
+      ],
+      "realmRoles": ["ROLE_CENTRO_COMANDO"]
+    },
+    {
+      "username": "combatente",
+      "enabled": true,
+      "email": "combatente@fortivus.gov.br",
+      "firstName": "Combatente",
+      "lastName": "Campo",
+      "credentials": [
+        {
+          "type": "password",
+          "value": "TROCAR_SENHA_ANTES_DO_GO_LIVE",
+          "temporary": true
+        }
+      ],
+      "realmRoles": ["ROLE_COMBATENTE"]
+    }
+  ]
+}

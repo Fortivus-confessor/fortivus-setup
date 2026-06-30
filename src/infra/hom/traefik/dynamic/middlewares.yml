@@ -1,0 +1,47 @@
+# Traefik — Middlewares Dinâmicos (HOM/Produção)
+# Este arquivo é lido em runtime pelo provider "file" do Traefik.
+
+http:
+  middlewares:
+
+    # ── Segurança: headers HTTP de proteção ───────────────────────────────────
+    secure-headers:
+      headers:
+        stsSeconds: 31536000
+        stsIncludeSubdomains: true
+        stsPreload: true
+        forceSTSHeader: true
+        contentTypeNosniff: true
+        browserXssFilter: true
+        referrerPolicy: "strict-origin-when-cross-origin"
+        permissionsPolicy: "camera=(), microphone=(), geolocation=(self), payment=()"
+        customFrameOptionsValue: "SAMEORIGIN"
+        customResponseHeaders:
+          X-Powered-By: ""
+          Server: ""
+
+    # ── Autenticação: Dashboard do Traefik ────────────────────────────────────
+    # Usuário e hash gerados via: htpasswd -nB admin
+    # Substitua os valores abaixo ou injete via arquivo .htpasswd externo
+    dashboard-auth:
+      basicAuth:
+        users:
+          - "admin:$2y$05$SUBSTITUA_PELO_HASH_GERADO_COM_HTPASSWD"
+
+    # ── Strip Prefix: SeaweedFS (/storage) ────────────────────────────────────
+    strip-storage:
+      stripPrefix:
+        prefixes:
+          - "/storage"
+
+    # ── Strip Prefix: Martin GIS Tiles (/tiles) ───────────────────────────────
+    strip-tiles:
+      stripPrefix:
+        prefixes:
+          - "/tiles"
+
+    # ── Rate Limiting (proteção básica contra abuso) ──────────────────────────
+    rate-limit:
+      rateLimit:
+        average: 100
+        burst: 50

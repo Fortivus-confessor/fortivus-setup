@@ -1,0 +1,46 @@
+# Traefik v3 — Configuração Estática (HOM/Produção)
+
+global:
+  checkNewVersion: false
+  sendAnonymousUsage: false
+
+log:
+  level: INFO
+
+accessLog: {}
+
+api:
+  dashboard: true
+  insecure: false
+
+entryPoints:
+  web:
+    address: ":80"
+    http:
+      redirections:
+        entryPoint:
+          to: websecure
+          scheme: https
+          permanent: true
+
+  websecure:
+    address: ":443"
+    http:
+      tls:
+        certResolver: letsencrypt
+
+certificatesResolvers:
+  letsencrypt:
+    acme:
+      email: ""  # Sobrescrito pela variável ACME_EMAIL via env no entrypoint — ver deployment-checklist.md
+      storage: /letsencrypt/acme.json
+      httpChallenge:
+        entryPoint: web
+
+providers:
+  docker:
+    exposedByDefault: false
+    network: fortivus-network-hom
+  file:
+    directory: /etc/traefik/dynamic
+    watch: true
