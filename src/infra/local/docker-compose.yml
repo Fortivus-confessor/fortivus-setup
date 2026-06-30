@@ -13,6 +13,11 @@ services:
     volumes:
       - ./postgres/data:/var/lib/postgresql/data
       - ./postgres/init-db.sql:/docker-entrypoint-initdb.d/init-db.sql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER}"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
     networks:
       - fortivus-network-local
 
@@ -38,6 +43,11 @@ services:
       KC_DB_PASSWORD: ${POSTGRES_PASSWORD}
       KEYCLOAK_ADMIN: admin
       KEYCLOAK_ADMIN_PASSWORD: admin
+      KC_HOSTNAME_URL: http://localhost:9000
+      KC_HOSTNAME_ADMIN_URL: http://localhost:9000
+      KC_HOSTNAME_STRICT: "false"
+      KC_HOSTNAME_STRICT_HTTPS: "false"
+      KC_HTTP_ENABLED: "true"
     command: start-dev --import-realm
     volumes:
       - ./keycloak/realm-export.json:/opt/keycloak/data/import/realm-export.json
@@ -45,7 +55,8 @@ services:
     ports:
       - "9000:8080"
     depends_on:
-      - postgres
+      postgres:
+        condition: service_healthy
     networks:
       - fortivus-network-local
 
