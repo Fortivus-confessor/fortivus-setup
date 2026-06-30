@@ -141,6 +141,9 @@ path "auth/token/renew-self" {
 path "auth/token/lookup-self" {
   capabilities = ["read"]
 }
+path "database/creds/*" {
+  capabilities = ["read"]
+}
 POLICY
 echo "      Policy 'fortivus-services' criada."
 
@@ -171,6 +174,32 @@ echo "      ✓ fortivus/storage"
 vault_exec kv put fortivus/nasa-firms \
   NASA_FIRMS_MAP_KEY="${NASA_FIRMS_MAP_KEY}"
 echo "      ✓ fortivus/nasa-firms"
+
+# ─── Configura Database Secrets Engine (Dynamic Secrets) ──────────────────────
+echo ""
+echo "[7.5/8] Habilitando Database Secrets Engine..."
+vault_exec secrets enable database || true
+
+vault_exec write database/config/fortivus-postgres \
+    plugin_name=postgresql-database-plugin \
+    allowed_roles="*" \
+    connection_url="postgresql://{{username}}:{{password}}@postgres:5432/${POSTGRES_DB}?sslmode=disable" \
+    username="${POSTGRES_USER}" \
+    password="${POSTGRES_PASSWORD}"
+
+create_db_role() {
+  local DB_ROLE="$1"
+  vault_exec write "database/roles/${DB_ROLE}" \
+      db_name=fortivus-postgres \
+      creation_statements="CREATE ROLE \"{{name}}\" WITH LOGIN PASSWORD '{{password}}' VALID UNTIL '{{expiration}}'; GRANT ALL PRIVILEGES ON DATABASE \"${POSTGRES_DB}\" TO \"{{name}}\"; GRANT ALL PRIVILEGES ON ALL TABLES IN SCHEMA public TO \"{{name}}\"; GRANT ALL PRIVILEGES ON ALL TABLES IN SCHEMA operacional TO \"{{name}}\"; GRANT ALL PRIVILEGES ON ALL TABLES IN SCHEMA fire_events TO \"{{name}}\";" \
+      revocation_statements="REASSIGN OWNED BY \"{{name}}\" TO \"${POSTGRES_USER}\"; DROP OWNED BY \"{{name}}\"; DROP ROLE \"{{name}}\";" \
+      default_ttl="1h" \
+      max_ttl="24h"
+}
+
+create_db_role "fortivus-backend-db"
+create_db_role "fortivus-attachment-db"
+create_db_role "fortivus-fire-event-db"
 
 # ─── Cria AppRoles e coleta credenciais ───────────────────────────────────────
 echo ""
@@ -228,3 +257,4 @@ echo " Para unseal após reinicialização do container Vault:"
 echo "   ./scripts/vault-unseal.sh"
 echo ""
 cat "$VAULT_CREDS_FILE"
+
