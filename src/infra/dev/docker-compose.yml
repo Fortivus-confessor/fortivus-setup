@@ -30,7 +30,7 @@ services:
 
   # 3. Gestão de Identidade (Keycloak)
   keycloak:
-    image: quay.io/keycloak/keycloak:25.0.6
+    image: quay.io/keycloak/keycloak:26.2.4
     container_name: fortivus-auth-dev
     restart: always
     environment:
@@ -42,8 +42,9 @@ services:
       KEYCLOAK_ADMIN_PASSWORD: ${KEYCLOAK_ADMIN_PASSWORD}
       KC_PROXY_HEADERS: xforwarded
       KC_HTTP_ENABLED: "true"
-      KC_HOSTNAME: auth.${DOMAIN}
+      KC_HOSTNAME: https://auth.${DOMAIN}
       KC_HOSTNAME_STRICT: "false"
+      KC_CACHE: local
     command: start --import-realm
     depends_on:
       postgres:

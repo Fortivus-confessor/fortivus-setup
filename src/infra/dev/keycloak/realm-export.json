@@ -22,7 +22,7 @@
       "bearerOnly": false,
       "frontchannelLogout": true,
       "redirectUris": ["*"],
-      "webOrigins": ["+"],
+      "webOrigins": ["*"],
       "attributes": {
         "post.logout.redirect.uris": "*",
         "pkce.code.challenge.method": "S256"
