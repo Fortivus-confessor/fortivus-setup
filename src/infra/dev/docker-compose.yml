@@ -42,8 +42,7 @@ services:
       KEYCLOAK_ADMIN_PASSWORD: ${KEYCLOAK_ADMIN_PASSWORD}
       KC_PROXY_HEADERS: xforwarded
       KC_HTTP_ENABLED: "true"
-      KC_HOSTNAME_URL: https://auth.${DOMAIN}
-      KC_HOSTNAME_ADMIN_URL: https://auth.${DOMAIN}
+      KC_HOSTNAME: auth.${DOMAIN}
       KC_HOSTNAME_STRICT: "false"
     command: start --import-realm
     depends_on:
