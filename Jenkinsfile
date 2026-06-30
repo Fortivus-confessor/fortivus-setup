@@ -122,13 +122,16 @@ pipeline {
 
         stage('Build e Deploy') {
             steps {
-                sh 'docker compose -f ${COMPOSE_FILE} --env-file ${ENV_FILE} up -d --build'
+                // --pull missing garante que imagens externas (ex: Keycloak) sejam puxadas
+                // se a tag mudou e nao estiver em cache local
+                sh 'docker compose -f ${COMPOSE_FILE} --env-file ${ENV_FILE} up -d --build --pull missing'
             }
         }
 
         stage('Healthcheck') {
             steps {
-                sh 'docker compose -f ${COMPOSE_FILE} ps'
+                // Aguarda containers estabilizarem antes de checar
+                sh 'sleep 10 && docker compose -f ${COMPOSE_FILE} --env-file ${ENV_FILE} ps'
             }
         }
     }

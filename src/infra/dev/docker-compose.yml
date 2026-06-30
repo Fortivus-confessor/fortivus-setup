@@ -12,6 +12,11 @@ services:
       POSTGRES_DB: ${POSTGRES_DB}
     volumes:
       - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER}"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
     networks:
       - fortivus-network-dev
 
@@ -41,6 +46,9 @@ services:
       KC_HOSTNAME_ADMIN_URL: https://auth.${DOMAIN}
       KC_HOSTNAME_STRICT: "false"
     command: start --import-realm
+    depends_on:
+      postgres:
+        condition: service_healthy
     volumes:
       - ./keycloak/realm-export.json:/opt/keycloak/data/import/realm-export.json
     labels:
