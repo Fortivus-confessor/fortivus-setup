@@ -1,0 +1,99 @@
+{
+  "rabbit_version": "3.13.0",
+  "rabbitmq_version": "3.13.0",
+  "product_name": "RabbitMQ",
+  "product_version": "3.13.0",
+  "vhosts": [
+    { "name": "/" }
+  ],
+  "permissions": [],
+  "exchanges": [
+    {
+      "name": "fortivus.fire_events",
+      "vhost": "/",
+      "type": "topic",
+      "durable": true,
+      "auto_delete": false,
+      "internal": false,
+      "arguments": {}
+    },
+    {
+      "name": "attachment.exchange",
+      "vhost": "/",
+      "type": "topic",
+      "durable": true,
+      "auto_delete": false,
+      "internal": false,
+      "arguments": {}
+    },
+    {
+      "name": "fortivus.mobile",
+      "vhost": "/",
+      "type": "topic",
+      "durable": true,
+      "auto_delete": false,
+      "internal": false,
+      "arguments": {}
+    }
+  ],
+  "queues": [
+    {
+      "name": "fortivus.q.fire_events.severe",
+      "vhost": "/",
+      "durable": true,
+      "auto_delete": false,
+      "arguments": {}
+    },
+    {
+      "name": "fortivus.q.attachments",
+      "vhost": "/",
+      "durable": true,
+      "auto_delete": false,
+      "arguments": {}
+    },
+    {
+      "name": "fortivus.q.mobile.dlq",
+      "vhost": "/",
+      "durable": true,
+      "auto_delete": false,
+      "arguments": {}
+    },
+    {
+      "name": "fortivus.q.mobile.despacho.atribuido",
+      "vhost": "/",
+      "durable": true,
+      "auto_delete": false,
+      "arguments": {
+        "x-dead-letter-exchange": "",
+        "x-dead-letter-routing-key": "fortivus.q.mobile.dlq",
+        "x-message-ttl": 86400000
+      }
+    }
+  ],
+  "bindings": [
+    {
+      "source": "fortivus.fire_events",
+      "vhost": "/",
+      "destination": "fortivus.q.fire_events.severe",
+      "destination_type": "queue",
+      "routing_key": "fire.detected.severe",
+      "arguments": {}
+    },
+    {
+      "source": "attachment.exchange",
+      "vhost": "/",
+      "destination": "fortivus.q.attachments",
+      "destination_type": "queue",
+      "routing_key": "attachment.#",
+      "arguments": {}
+    },
+    {
+      "source": "fortivus.mobile",
+      "vhost": "/",
+      "destination": "fortivus.q.mobile.despacho.atribuido",
+      "destination_type": "queue",
+      "routing_key": "mobile.despacho.atribuido",
+      "arguments": {}
+    }
+  ]
+}
