@@ -21,3 +21,8 @@ path "auth/token/renew-self" {
 path "auth/token/lookup-self" {
   capabilities = ["read"]
 }
+
+# Credenciais dinâmicas do Postgres (Database Secrets Engine)
+path "database/creds/*" {
+  capabilities = ["read"]
+}

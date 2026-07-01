@@ -34,12 +34,6 @@ http:
         prefixes:
           - "/storage"
 
-    # ── Strip Prefix: Martin GIS Tiles (/tiles) ───────────────────────────────
-    strip-tiles:
-      stripPrefix:
-        prefixes:
-          - "/tiles"
-
     # ── Rate Limiting (proteção básica contra abuso) ──────────────────────────
     rate-limit:
       rateLimit:

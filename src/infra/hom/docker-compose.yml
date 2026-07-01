@@ -143,26 +143,6 @@ services:
     networks:
       - fortivus-network-hom
 
-  # 7. GIS Tile Server (Martin)
-  martin:
-    image: ghcr.io/maplibre/martin:v0.13.0
-    container_name: fortivus-martin-hom
-    restart: unless-stopped
-    environment:
-      - DATABASE_URL=postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB}
-    depends_on:
-      postgres:
-        condition: service_healthy
-    labels:
-      - "traefik.enable=true"
-      - "traefik.http.routers.martin.rule=Host(`${DOMAIN}`) && PathPrefix(`/tiles`)"
-      - "traefik.http.routers.martin.entrypoints=websecure"
-      - "traefik.http.routers.martin.tls=true"
-      - "traefik.http.routers.martin.tls.certresolver=letsencrypt"
-      - "traefik.http.services.martin.loadbalancer.server.port=3000"
-      - "traefik.http.routers.martin.middlewares=strip-tiles@file"
-    networks:
-      - fortivus-network-hom
 
   # 8. Edge Router / Proxy Reverso (Traefik)
   traefik:
