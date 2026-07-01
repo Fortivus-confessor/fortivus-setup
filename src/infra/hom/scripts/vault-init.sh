@@ -49,7 +49,7 @@ echo "[1/8] Verificando conectividade com o Vault..."
 MAX_RETRIES=12
 for i in $(seq 1 $MAX_RETRIES); do
   if docker compose -f "$HOM_DIR/docker-compose.yml" exec -T vault \
-      env VAULT_ADDR=http://127.0.0.1:8200 vault status > /dev/null 2>&1; then
+      env VAULT_ADDR=http://127.0.0.1:8200 vault status > /dev/null 2>&1 || true; then
     echo "      Vault acessível."
     break
   elif [ "$i" -eq "$MAX_RETRIES" ]; then

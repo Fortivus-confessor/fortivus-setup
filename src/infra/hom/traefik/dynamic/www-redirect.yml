@@ -1,0 +1,29 @@
+# Redireciona www.fortivus.xyz → fortivus.xyz com cert Let's Encrypt válido
+# Traefik solicita automaticamente o cert ao detectar o router com tls.certResolver
+
+http:
+  routers:
+    www-redirect:
+      rule: "Host(`www.fortivus.xyz`)"
+      entryPoints:
+        - websecure
+      tls:
+        certResolver: letsencrypt
+      middlewares:
+        - www-to-apex
+      service: noop@internal
+
+    www-redirect-http:
+      rule: "Host(`www.fortivus.xyz`)"
+      entryPoints:
+        - web
+      middlewares:
+        - www-to-apex
+      service: noop@internal
+
+  middlewares:
+    www-to-apex:
+      redirectRegex:
+        regex: "^https?://www\\.fortivus\\.xyz/(.*)"
+        replacement: "https://fortivus.xyz/${1}"
+        permanent: true

@@ -73,7 +73,7 @@ services:
     volumes:
       - ./vault/config/vault.hcl:/vault/config/vault.hcl:ro
       - vault_data:/vault/data
-    command: server -config=/vault/config/vault.hcl
+    command: server
     healthcheck:
       test: ["CMD", "vault", "status", "-address=http://127.0.0.1:8200"]
       interval: 15s
@@ -97,6 +97,7 @@ services:
       KEYCLOAK_ADMIN_PASSWORD: ${KEYCLOAK_ADMIN_PASSWORD}
       KC_PROXY_HEADERS: xforwarded
       KC_HTTP_ENABLED: "true"
+      KC_HEALTH_ENABLED: "true"
       KC_HOSTNAME: https://auth.${DOMAIN}
       KC_HOSTNAME_STRICT: "false"
       KC_CACHE: local
@@ -107,7 +108,8 @@ services:
       postgres:
         condition: service_healthy
     healthcheck:
-      test: ["CMD-SHELL", "exec 3<>/dev/tcp/localhost/8080 && echo -e 'GET /health/ready HTTP/1.1\\r\\nHost: localhost\\r\\n\\r\\n' >&3 && cat <&3 | grep -q '200 OK'"]
+      test: ["CMD", "bash", "-c", "exec 3<>/dev/tcp/127.0.0.1/9000 && echo -e 'GET /health/ready HTTP/1.1\r\nHost: localhost\r\nConnection:
+  close\r\n\r\n' >&3 && grep -q '200 OK' <&3"]
       interval: 20s
       timeout: 10s
       retries: 10
@@ -164,7 +166,7 @@ services:
 
   # 8. Edge Router / Proxy Reverso (Traefik)
   traefik:
-    image: traefik:v3.1
+    image: traefik:latest
     container_name: fortivus-traefik-hom
     restart: unless-stopped
     command:
@@ -197,16 +199,17 @@ services:
       dockerfile: Dockerfile
       args:
         VITE_KEYCLOAK_URL: https://auth.${DOMAIN}
-        VITE_API_PUBLIC_BASE: ""
     container_name: fortivus-frontend-hom
     restart: unless-stopped
+    environment:
+      VITE_KEYCLOAK_URL: https://auth.${DOMAIN}
     labels:
       - "traefik.enable=true"
       - "traefik.http.routers.frontend.rule=Host(`${DOMAIN}`)"
       - "traefik.http.routers.frontend.entrypoints=websecure"
       - "traefik.http.routers.frontend.tls=true"
       - "traefik.http.routers.frontend.tls.certresolver=letsencrypt"
-      - "traefik.http.services.frontend.loadbalancer.server.port=80"
+      - "traefik.http.services.frontend.loadbalancer.server.port=5173"
     networks:
       - fortivus-network-hom
 

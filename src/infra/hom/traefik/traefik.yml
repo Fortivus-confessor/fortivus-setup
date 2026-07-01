@@ -5,9 +5,18 @@ global:
   sendAnonymousUsage: false
 
 log:
-  level: INFO
+  level: DEBUG
+  format: json
 
-accessLog: {}
+accessLog:
+  format: json
+  fields:
+    defaultMode: keep
+    headers:
+      defaultMode: keep
+      names:
+        Authorization: drop
+        Cookie: drop
 
 api:
   dashboard: true
@@ -40,7 +49,7 @@ certificatesResolvers:
 providers:
   docker:
     exposedByDefault: false
-    network: fortivus-network-hom
+    network: hom_fortivus-network-hom
   file:
     directory: /etc/traefik/dynamic
     watch: true

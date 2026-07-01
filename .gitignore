@@ -12,3 +12,8 @@ logs/
 **/.env
 
 *.md
+
+# Ignorar credenciais do Vault e backups
+.env.vault-credentials
+.vault-keys
+*.bak

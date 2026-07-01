@@ -26,7 +26,7 @@ http:
     dashboard-auth:
       basicAuth:
         users:
-          - "admin:$2y$05$SUBSTITUA_PELO_HASH_GERADO_COM_HTPASSWD"
+          - "admin:$2y$05$TmhaOE5L3HYt.dZcCAfl9.9OSN1M54J5nGvioN6IDC2pB0LYRBedu"
 
     # ── Strip Prefix: SeaweedFS (/storage) ────────────────────────────────────
     strip-storage:
