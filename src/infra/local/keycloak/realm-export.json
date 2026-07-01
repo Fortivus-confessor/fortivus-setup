@@ -21,10 +21,18 @@
   ],
   "roles": {
     "realm": [
-      { "name": "ROLE_ADMIN" },
-      { "name": "ROLE_CENTRO_COMANDO_CENTRAL" },
-      { "name": "ROLE_CENTRO_COMANDO" },
-      { "name": "ROLE_COMBATENTE" }
+      {
+        "name": "ROLE_ADMIN"
+      },
+      {
+        "name": "ROLE_CENTRO_COMANDO_CENTRAL"
+      },
+      {
+        "name": "ROLE_CENTRO_COMANDO"
+      },
+      {
+        "name": "ROLE_COMBATENTE"
+      }
     ]
   },
   "users": [
@@ -35,9 +43,15 @@
       "firstName": "Administrador",
       "lastName": "Geral",
       "credentials": [
-        { "type": "password", "value": "123456", "temporary": false }
+        {
+          "type": "password",
+          "value": "123456",
+          "temporary": false
+        }
       ],
-      "realmRoles": [ "ROLE_ADMIN" ]
+      "realmRoles": [
+        "ROLE_ADMIN"
+      ]
     },
     {
       "username": "comandante",
@@ -46,9 +60,15 @@
       "firstName": "Comandante",
       "lastName": "Central",
       "credentials": [
-        { "type": "password", "value": "123456", "temporary": false }
+        {
+          "type": "password",
+          "value": "123456",
+          "temporary": false
+        }
       ],
-      "realmRoles": [ "ROLE_CENTRO_COMANDO_CENTRAL" ]
+      "realmRoles": [
+        "ROLE_CENTRO_COMANDO_CENTRAL"
+      ]
     },
     {
       "username": "operador",
@@ -57,9 +77,15 @@
       "firstName": "Operador",
       "lastName": "Base",
       "credentials": [
-        { "type": "password", "value": "123456", "temporary": false }
+        {
+          "type": "password",
+          "value": "123456",
+          "temporary": false
+        }
       ],
-      "realmRoles": [ "ROLE_CENTRO_COMANDO" ]
+      "realmRoles": [
+        "ROLE_CENTRO_COMANDO"
+      ]
     },
     {
       "username": "combatente",
@@ -68,9 +94,20 @@
       "firstName": "Combatente",
       "lastName": "Campo",
       "credentials": [
-        { "type": "password", "value": "123456", "temporary": false }
+        {
+          "type": "password",
+          "value": "123456",
+          "temporary": false
+        }
       ],
-      "realmRoles": [ "ROLE_COMBATENTE" ]
+      "realmRoles": [
+        "ROLE_COMBATENTE"
+      ]
     }
+  ],
+  "internationalizationEnabled": true,
+  "defaultLocale": "pt-BR",
+  "supportedLocales": [
+    "pt-BR"
   ]
 }

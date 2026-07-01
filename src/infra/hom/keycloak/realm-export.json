@@ -30,8 +30,12 @@
       "serviceAccountsEnabled": false,
       "bearerOnly": false,
       "frontchannelLogout": true,
-      "redirectUris": ["*"],
-      "webOrigins": ["*"],
+      "redirectUris": [
+        "*"
+      ],
+      "webOrigins": [
+        "*"
+      ],
       "attributes": {
         "post.logout.redirect.uris": "*",
         "pkce.code.challenge.method": "S256"
@@ -72,7 +76,9 @@
           "temporary": true
         }
       ],
-      "realmRoles": ["ROLE_ADMIN"]
+      "realmRoles": [
+        "ROLE_ADMIN"
+      ]
     },
     {
       "username": "comandante",
@@ -87,7 +93,9 @@
           "temporary": true
         }
       ],
-      "realmRoles": ["ROLE_CENTRO_COMANDO_CENTRAL"]
+      "realmRoles": [
+        "ROLE_CENTRO_COMANDO_CENTRAL"
+      ]
     },
     {
       "username": "operador",
@@ -102,7 +110,9 @@
           "temporary": true
         }
       ],
-      "realmRoles": ["ROLE_CENTRO_COMANDO"]
+      "realmRoles": [
+        "ROLE_CENTRO_COMANDO"
+      ]
     },
     {
       "username": "combatente",
@@ -117,7 +127,14 @@
           "temporary": true
         }
       ],
-      "realmRoles": ["ROLE_COMBATENTE"]
+      "realmRoles": [
+        "ROLE_COMBATENTE"
+      ]
     }
+  ],
+  "internationalizationEnabled": true,
+  "defaultLocale": "pt-BR",
+  "supportedLocales": [
+    "pt-BR"
   ]
 }

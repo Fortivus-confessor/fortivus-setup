@@ -21,8 +21,12 @@
       "serviceAccountsEnabled": false,
       "bearerOnly": false,
       "frontchannelLogout": true,
-      "redirectUris": ["*"],
-      "webOrigins": ["*"],
+      "redirectUris": [
+        "*"
+      ],
+      "webOrigins": [
+        "*"
+      ],
       "attributes": {
         "post.logout.redirect.uris": "*",
         "pkce.code.challenge.method": "S256"
@@ -31,10 +35,22 @@
   ],
   "roles": {
     "realm": [
-      { "name": "ROLE_ADMIN",                  "description": "Administrador do sistema" },
-      { "name": "ROLE_CENTRO_COMANDO_CENTRAL", "description": "Comandante Central" },
-      { "name": "ROLE_CENTRO_COMANDO",         "description": "Operador de Centro de Comando" },
-      { "name": "ROLE_COMBATENTE",             "description": "Combatente de Campo" }
+      {
+        "name": "ROLE_ADMIN",
+        "description": "Administrador do sistema"
+      },
+      {
+        "name": "ROLE_CENTRO_COMANDO_CENTRAL",
+        "description": "Comandante Central"
+      },
+      {
+        "name": "ROLE_CENTRO_COMANDO",
+        "description": "Operador de Centro de Comando"
+      },
+      {
+        "name": "ROLE_COMBATENTE",
+        "description": "Combatente de Campo"
+      }
     ]
   },
   "users": [
@@ -45,9 +61,15 @@
       "firstName": "Administrador",
       "lastName": "Geral",
       "credentials": [
-        { "type": "password", "value": "123456", "temporary": false }
+        {
+          "type": "password",
+          "value": "123456",
+          "temporary": false
+        }
       ],
-      "realmRoles": ["ROLE_ADMIN"]
+      "realmRoles": [
+        "ROLE_ADMIN"
+      ]
     },
     {
       "username": "comandante",
@@ -56,9 +78,15 @@
       "firstName": "Comandante",
       "lastName": "Central",
       "credentials": [
-        { "type": "password", "value": "123456", "temporary": false }
+        {
+          "type": "password",
+          "value": "123456",
+          "temporary": false
+        }
       ],
-      "realmRoles": ["ROLE_CENTRO_COMANDO_CENTRAL"]
+      "realmRoles": [
+        "ROLE_CENTRO_COMANDO_CENTRAL"
+      ]
     },
     {
       "username": "operador",
@@ -67,9 +95,15 @@
       "firstName": "Operador",
       "lastName": "Base",
       "credentials": [
-        { "type": "password", "value": "123456", "temporary": false }
+        {
+          "type": "password",
+          "value": "123456",
+          "temporary": false
+        }
       ],
-      "realmRoles": ["ROLE_CENTRO_COMANDO"]
+      "realmRoles": [
+        "ROLE_CENTRO_COMANDO"
+      ]
     },
     {
       "username": "combatente",
@@ -78,9 +112,21 @@
       "firstName": "Combatente",
       "lastName": "Campo",
       "credentials": [
-        { "type": "password", "value": "123456", "temporary": false }
+        {
+          "type": "password",
+          "value": "123456",
+          "temporary": false
+        }
       ],
-      "realmRoles": ["ROLE_COMBATENTE"]
+      "realmRoles": [
+        "ROLE_COMBATENTE"
+      ]
     }
+  ],
+  "loginTheme": "fortivus",
+  "internationalizationEnabled": true,
+  "defaultLocale": "pt-BR",
+  "supportedLocales": [
+    "pt-BR"
   ]
 }

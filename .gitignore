@@ -12,8 +12,13 @@ logs/
 **/.env
 
 *.md
+# Exceção: avisos de download dos vídeos devem ser versionados
+!**/LEIA-ME_VIDEOS.md
 
 # Ignorar credenciais do Vault e backups
 .env.vault-credentials
 .vault-keys
 *.bak
+
+# Vídeos de fundo — baixar do Google Drive (ver LEIA-ME_VIDEOS.md)
+*.mp4
